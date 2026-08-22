@@ -1,5 +1,6 @@
-import { STATS } from "../data/mockData.js";
+import { PROJECTS, STATS } from "../data/mockData.js";
 import StatsGrid from "../components/dashboard/Statsgrid.jsx";
+import ProjectSection from "../components/dashboard/ProjectSection";
 
 /**
  * Dashboard
@@ -24,6 +25,8 @@ export default function Dashboard() {
       </div>
 
       <StatsGrid stats={STATS} />
+
+      <ProjectSection projects={PROJECTS} />
     </div>
   );
 }
