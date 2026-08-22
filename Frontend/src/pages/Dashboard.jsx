@@ -1,6 +1,14 @@
-import { PROJECTS, STATS, TASKS, TASK_FILTERS, } from "../data/mockData.js";
-import StatsGrid from "../components/dashboard/Statsgrid.jsx";
+import {
+  PROJECTS,
+  RECENT_ACTIVITY,
+  STATS,
+  TASKS,
+  TASK_FILTERS,
+} from "../data/mockData";
+
+import ActivitySection from "../components/dashboard/ActivitySection";
 import ProjectSection from "../components/dashboard/ProjectSection";
+import StatsGrid from "../components/dashboard/Statsgrid.jsx";
 import TaskSection from "../components/dashboard/TaskSection";
 
 /**
@@ -8,13 +16,14 @@ import TaskSection from "../components/dashboard/TaskSection";
  *
  * Primary landing page for the Developer Productivity Dashboard.
  *
- * Dashboard-specific data is currently supplied by mockData.js.
+ * Dashboard data is currently supplied by mockData.js.
  * The data source can later be replaced with REST API responses
  * without changing the presentation components.
  */
 export default function Dashboard() {
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-8">
+      {/* Dashboard header */}
       <div>
         <h1 className="text-xl font-semibold text-slate-900">
           Dashboard
@@ -25,15 +34,20 @@ export default function Dashboard() {
         </p>
       </div>
 
+      {/* Statistics */}
       <StatsGrid stats={STATS} />
 
+      {/* Projects */}
       <ProjectSection projects={PROJECTS} />
 
       {/* Tasks */}
       <TaskSection
         tasks={TASKS}
         filters={TASK_FILTERS}
-    />
+      />
+
+      {/* Recent activity */}
+      <ActivitySection activities={RECENT_ACTIVITY} />
     </div>
   );
 }
