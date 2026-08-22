@@ -1,6 +1,7 @@
-import { PROJECTS, STATS } from "../data/mockData.js";
+import { PROJECTS, STATS, TASKS, TASK_FILTERS, } from "../data/mockData.js";
 import StatsGrid from "../components/dashboard/Statsgrid.jsx";
 import ProjectSection from "../components/dashboard/ProjectSection";
+import TaskSection from "../components/dashboard/TaskSection";
 
 /**
  * Dashboard
@@ -27,6 +28,12 @@ export default function Dashboard() {
       <StatsGrid stats={STATS} />
 
       <ProjectSection projects={PROJECTS} />
+
+      {/* Tasks */}
+      <TaskSection
+        tasks={TASKS}
+        filters={TASK_FILTERS}
+    />
     </div>
   );
 }
