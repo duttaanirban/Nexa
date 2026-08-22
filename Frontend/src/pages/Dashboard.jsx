@@ -8,8 +8,9 @@ import {
 
 import ActivitySection from "../components/dashboard/ActivitySection";
 import DashboardSkeleton from "../components/dashboard/DashboardSkeleton";
+import ErrorState from "../components/ui/ErrorState";
 import ProjectSection from "../components/dashboard/ProjectSection";
-import StatsGrid from "../components/dashboard/Statsgrid.jsx";
+import StatsGrid from "../components/dashboard/Statsgrid";
 import TaskSection from "../components/dashboard/TaskSection";
 
 /**
@@ -21,9 +22,22 @@ import TaskSection from "../components/dashboard/TaskSection";
  * The data source can later be replaced with REST API responses
  * without changing the presentation components.
  */
-export default function Dashboard({ loading = false }) {
+export default function Dashboard({
+  loading = false,
+  error = null,
+}) {
   if (loading) {
     return <DashboardSkeleton />;
+  }
+
+  if (error) {
+    const errorMessage =
+      typeof error === "string"
+        ? error
+        : error?.message ||
+          "We couldn't load the dashboard. Please try again.";
+
+    return <ErrorState message={errorMessage} />;
   }
 
   return (
@@ -52,7 +66,9 @@ export default function Dashboard({ loading = false }) {
       />
 
       {/* Recent activity */}
-      <ActivitySection activities={RECENT_ACTIVITY} />
+      <ActivitySection
+        activities={RECENT_ACTIVITY}
+      />
     </div>
   );
 }
