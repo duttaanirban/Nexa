@@ -1,4 +1,5 @@
 import { Menu, Search, Bell } from "lucide-react";
+import ProfileMenu from "./ProfileMenu";
 
 /**
  * Navbar
@@ -47,18 +48,7 @@ export default function Navbar({ onMenuClick = () => {} }) {
       </button>
 
       {/* Profile */}
-      <button
-        type="button"
-        className="flex items-center gap-2 rounded-lg py-1 pl-1 pr-2 hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400"
-        aria-label="Open account menu"
-      >
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-200 text-xs font-semibold text-slate-700">
-          MK
-        </div>
-        <span className="hidden text-sm font-medium text-slate-700 sm:inline">
-          Mira Kapoor
-        </span>
-      </button>
+      <ProfileMenu />
     </header>
   );
 }
