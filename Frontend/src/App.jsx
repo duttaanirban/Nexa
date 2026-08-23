@@ -4,6 +4,7 @@ import Dashboard from "./pages/Dashboard";
 import Projects from "./pages/Projects";
 import Tasks from "./pages/Tasks";
 import Team from "./pages/Team";
+import Settings from "./pages/Settings";
 import { PROJECTS, TASKS, TASK_FILTERS, TEAM_MEMBERS } from "./data/mockData";
 
 /**
@@ -51,12 +52,7 @@ export default function App() {
           />
           <Route
             path="settings"
-            element={
-              <PagePlaceholder
-                title="Settings"
-                description="Manage your account and workspace preferences."
-              />
-            }
+            element={<Settings />}
           />
         </Route>
       </Routes>
