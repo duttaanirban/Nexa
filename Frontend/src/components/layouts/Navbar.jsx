@@ -1,6 +1,7 @@
-import { Menu, Search } from "lucide-react";
+import { Menu } from "lucide-react";
 import ProfileMenu from "./ProfileMenu";
 import NotificationMenu from "./NotificationMenu";
+import GlobalSearch from "./GlobalSearch";
 
 /**
  * Navbar
@@ -23,15 +24,7 @@ export default function Navbar({ onMenuClick = () => {} }) {
       </button>
 
       {/* Search */}
-      <div className="flex max-w-md flex-1 items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
-        <Search size={15} className="shrink-0 text-slate-400" aria-hidden="true" />
-        <input
-          type="text"
-          placeholder="Search…"
-          aria-label="Search"
-          className="w-full bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none"
-        />
-      </div>
+      <GlobalSearch />
 
       <div className="flex-1" />
 
