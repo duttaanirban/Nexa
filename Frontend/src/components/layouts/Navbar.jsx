@@ -1,5 +1,6 @@
-import { Menu, Search, Bell } from "lucide-react";
+import { Menu, Search } from "lucide-react";
 import ProfileMenu from "./ProfileMenu";
+import NotificationMenu from "./NotificationMenu";
 
 /**
  * Navbar
@@ -35,17 +36,7 @@ export default function Navbar({ onMenuClick = () => {} }) {
       <div className="flex-1" />
 
       {/* Notifications */}
-      <button
-        type="button"
-        className="relative rounded-md border border-slate-200 p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400"
-        aria-label="View notifications"
-      >
-        <Bell size={17} />
-        <span
-          className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-red-500"
-          aria-hidden="true"
-        />
-      </button>
+      <NotificationMenu />
 
       {/* Profile */}
       <ProfileMenu />
