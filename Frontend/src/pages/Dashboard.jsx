@@ -4,11 +4,13 @@ import {
   STATS,
   TASKS,
   TASK_FILTERS,
+  VELOCITY_CHART_DATA,
 } from "../data/mockData";
 
 import ActivitySection from "../components/dashboard/ActivitySection";
 import DashboardSkeleton from "../components/dashboard/DashboardSkeleton";
 import ErrorState from "../components/ui/ErrorState";
+import ProductivityChart from "../components/dashboard/ProductivityChart";
 import ProjectSection from "../components/dashboard/ProjectSection";
 import StatsGrid from "../components/dashboard/Statsgrid";
 import TaskSection from "../components/dashboard/TaskSection";
@@ -55,6 +57,9 @@ export default function Dashboard({
 
       {/* Statistics */}
       <StatsGrid stats={STATS} />
+
+      {/* Productivity */}
+      <ProductivityChart data={VELOCITY_CHART_DATA} />
 
       {/* Projects */}
       <ProjectSection projects={PROJECTS} />
