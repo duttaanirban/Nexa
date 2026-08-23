@@ -426,3 +426,41 @@ export const VELOCITY_CHART_DATA = [
     closed: 33,
   },
 ];
+
+export const TEAM_MEMBERS = [
+  {
+    id: "USR-001",
+    name: "Mira Kapoor",
+    role: "Frontend Lead",
+    initials: "MK",
+    email: "mira.kapoor@example.com",
+  },
+  {
+    id: "USR-002",
+    name: "Arjun Khanna",
+    role: "Backend Engineer",
+    initials: "AK",
+    email: "arjun.khanna@example.com",
+  },
+  {
+    id: "USR-003",
+    name: "Riya Sen",
+    role: "QA Engineer",
+    initials: "RS",
+    email: "riya.sen@example.com",
+  },
+  {
+    id: "USR-004",
+    name: "Jay Thomas",
+    role: "DevOps Engineer",
+    initials: "JT",
+    email: "jay.thomas@example.com",
+  },
+  {
+    id: "USR-005",
+    name: "Priya Lal",
+    role: "Product Manager",
+    initials: "PL",
+    email: "priya.lal@example.com",
+  },
+];

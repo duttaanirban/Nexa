@@ -3,7 +3,8 @@ import AppLayout from "./components/layouts/Applayout";
 import Dashboard from "./pages/Dashboard";
 import Projects from "./pages/Projects";
 import Tasks from "./pages/Tasks";
-import { PROJECTS, TASKS, TASK_FILTERS } from "./data/mockData";
+import Team from "./pages/Team";
+import { PROJECTS, TASKS, TASK_FILTERS, TEAM_MEMBERS } from "./data/mockData";
 
 /**
  * Temporary placeholder for routes that don't have a real page yet.
@@ -36,22 +37,17 @@ export default function App() {
             element={<Projects projects={PROJECTS} />}
           />
           <Route
-  path="tasks"
-  element={
-    <Tasks
-      tasks={TASKS}
-      filters={TASK_FILTERS}
-    />
-  }
-/>
-          <Route
-            path="team"
+            path="tasks"
             element={
-              <PagePlaceholder
-                title="Team"
-                description="See who's working on what across the team."
+              <Tasks
+                tasks={TASKS}
+                filters={TASK_FILTERS}
               />
             }
+          />
+          <Route
+            path="team"
+            element={<Team members={TEAM_MEMBERS} />}
           />
           <Route
             path="settings"
