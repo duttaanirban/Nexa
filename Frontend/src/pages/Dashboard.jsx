@@ -1,5 +1,6 @@
 import {
   PROJECTS,
+  QUICK_ACTIONS,
   RECENT_ACTIVITY,
   STATS,
   TASKS,
@@ -12,6 +13,7 @@ import DashboardSkeleton from "../components/dashboard/DashboardSkeleton";
 import ErrorState from "../components/ui/ErrorState";
 import ProductivityChart from "../components/dashboard/ProductivityChart";
 import ProjectSection from "../components/dashboard/ProjectSection";
+import QuickActions from "../components/dashboard/QuickActions";
 import StatsGrid from "../components/dashboard/Statsgrid";
 import TaskSection from "../components/dashboard/TaskSection";
 
@@ -60,6 +62,9 @@ export default function Dashboard({
 
       {/* Productivity */}
       <ProductivityChart data={VELOCITY_CHART_DATA} />
+
+      {/* Quick actions */}
+      <QuickActions actions={QUICK_ACTIONS} />
 
       {/* Projects */}
       <ProjectSection projects={PROJECTS} />
