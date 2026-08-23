@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AppLayout from "./components/layouts/Applayout";
 import Dashboard from "./pages/Dashboard";
+import Projects from "./pages/Projects";
+import { PROJECTS } from "./data/mockData";
 
 /**
  * Temporary placeholder for routes that don't have a real page yet.
@@ -30,12 +32,7 @@ export default function App() {
           <Route index element={<Dashboard />} />
           <Route
             path="projects"
-            element={
-              <PagePlaceholder
-                title="Projects"
-                description="Browse and manage all projects in one place."
-              />
-            }
+            element={<Projects projects={PROJECTS} />}
           />
           <Route
             path="tasks"
