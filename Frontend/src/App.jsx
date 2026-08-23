@@ -2,7 +2,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AppLayout from "./components/layouts/Applayout";
 import Dashboard from "./pages/Dashboard";
 import Projects from "./pages/Projects";
-import { PROJECTS } from "./data/mockData";
+import Tasks from "./pages/Tasks";
+import { PROJECTS, TASKS, TASK_FILTERS } from "./data/mockData";
 
 /**
  * Temporary placeholder for routes that don't have a real page yet.
@@ -35,14 +36,14 @@ export default function App() {
             element={<Projects projects={PROJECTS} />}
           />
           <Route
-            path="tasks"
-            element={
-              <PagePlaceholder
-                title="Tasks"
-                description="Track and organize tasks across your projects."
-              />
-            }
-          />
+  path="tasks"
+  element={
+    <Tasks
+      tasks={TASKS}
+      filters={TASK_FILTERS}
+    />
+  }
+/>
           <Route
             path="team"
             element={
