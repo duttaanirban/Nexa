@@ -1,12 +1,71 @@
-import AppLayout from "./components/layouts/Applayout.jsx";
-import Dashboard from "./pages/Dashboard.jsx";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import AppLayout from "./components/layouts/Applayout";
+import Dashboard from "./pages/Dashboard";
 
-function App() {
+/**
+ * Temporary placeholder for routes that don't have a real page yet.
+ * Matches the heading + description pattern used in Dashboard.jsx so
+ * the app feels consistent while these pages are built out.
+ */
+function PagePlaceholder({ title, description }) {
   return (
-    <AppLayout>
-      <Dashboard />
-    </AppLayout>
+    <div className="flex flex-col gap-6">
+      <div>
+        <h1 className="text-xl font-semibold text-slate-900">{title}</h1>
+        <p className="mt-1 text-sm text-slate-500">{description}</p>
+      </div>
+
+      <div className="flex flex-1 items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white px-6 py-20 text-center text-sm text-slate-500">
+        This page hasn't been built yet.
+      </div>
+    </div>
   );
 }
 
-export default App;
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route element={<AppLayout />}>
+          <Route index element={<Dashboard />} />
+          <Route
+            path="projects"
+            element={
+              <PagePlaceholder
+                title="Projects"
+                description="Browse and manage all projects in one place."
+              />
+            }
+          />
+          <Route
+            path="tasks"
+            element={
+              <PagePlaceholder
+                title="Tasks"
+                description="Track and organize tasks across your projects."
+              />
+            }
+          />
+          <Route
+            path="team"
+            element={
+              <PagePlaceholder
+                title="Team"
+                description="See who's working on what across the team."
+              />
+            }
+          />
+          <Route
+            path="settings"
+            element={
+              <PagePlaceholder
+                title="Settings"
+                description="Manage your account and workspace preferences."
+              />
+            }
+          />
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  );
+}

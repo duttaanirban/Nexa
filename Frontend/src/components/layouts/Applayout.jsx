@@ -1,23 +1,23 @@
 import { useState } from "react";
+import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
 
 /**
  * AppLayout
  *
- * Shell that composes Sidebar + Navbar around page content. Owns the
- * mobile sidebar-open state so Navbar's menu button and Sidebar's
- * backdrop/close button stay in sync.
+ * Shared layout route. Composes Sidebar + Navbar around whatever
+ * child route matched via <Outlet />. Owns the mobile sidebar-open
+ * state so Navbar's menu button and Sidebar's backdrop/close button
+ * stay in sync.
  *
- * Usage:
- *   <AppLayout>
- *     <Dashboard />
- *   </AppLayout>
- *
- * If you introduce React Router, replace `children` with `<Outlet />`
- * and render <AppLayout /> as a layout route.
+ * Usage (in App.jsx):
+ *   <Route element={<AppLayout />}>
+ *     <Route index element={<Dashboard />} />
+ *     <Route path="projects" element={<Projects />} />
+ *   </Route>
  */
-export default function AppLayout({ children }) {
+export default function AppLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
@@ -31,7 +31,7 @@ export default function AppLayout({ children }) {
         <Navbar onMenuClick={() => setIsSidebarOpen(true)} />
 
         <main className="flex-1 overflow-y-auto p-4 md:p-6">
-          {children}
+          <Outlet />
         </main>
       </div>
     </div>

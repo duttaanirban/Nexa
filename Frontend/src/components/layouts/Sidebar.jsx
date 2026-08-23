@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
   FolderKanban,
@@ -9,17 +9,16 @@ import {
 } from "lucide-react";
 
 /**
- * Sidebar navigation items.
- * Swap `activeId` state below for React Router's `useLocation` /
- * `NavLink` once routing is wired up — this keeps the component
- * usable standalone until then.
+ * Sidebar navigation items. `to` matches the routes defined in
+ * App.jsx. Dashboard uses `end` (set on the NavLink below) so it's
+ * only active on the exact `/` path, not on every nested route.
  */
 const NAV_ITEMS = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { id: "projects", label: "Projects", icon: FolderKanban },
-  { id: "tasks", label: "Tasks", icon: ListChecks },
-  { id: "team", label: "Team", icon: Users },
-  { id: "settings", label: "Settings", icon: Settings },
+  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, to: "/", end: true },
+  { id: "projects", label: "Projects", icon: FolderKanban, to: "/projects" },
+  { id: "tasks", label: "Tasks", icon: ListChecks, to: "/tasks" },
+  { id: "team", label: "Team", icon: Users, to: "/team" },
+  { id: "settings", label: "Settings", icon: Settings, to: "/settings" },
 ];
 
 /**
@@ -36,13 +35,6 @@ const NAV_ITEMS = [
  *   drawer chrome (backdrop, close button) is inert.
  */
 export default function Sidebar({ isOpen = false, onClose = () => {} }) {
-  const [activeId, setActiveId] = useState("dashboard");
-
-  const handleSelect = (id) => {
-    setActiveId(id);
-    onClose();
-  };
-
   return (
     <>
       {/* Backdrop — mobile only, shown when drawer is open */}
@@ -91,25 +83,26 @@ export default function Sidebar({ isOpen = false, onClose = () => {} }) {
         >
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
-            const isActive = activeId === item.id;
 
             return (
-              <button
+              <NavLink
                 key={item.id}
-                type="button"
-                onClick={() => handleSelect(item.id)}
-                aria-current={isActive ? "page" : undefined}
-                className={[
-                  "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400",
-                  isActive
-                    ? "bg-slate-900 text-white"
-                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
-                ].join(" ")}
+                to={item.to}
+                end={item.end}
+                onClick={onClose}
+                className={({ isActive }) =>
+                  [
+                    "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                    "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400",
+                    isActive
+                      ? "bg-slate-900 text-white"
+                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
+                  ].join(" ")
+                }
               >
                 <Icon size={17} strokeWidth={2} aria-hidden="true" />
                 {item.label}
-              </button>
+              </NavLink>
             );
           })}
         </nav>
