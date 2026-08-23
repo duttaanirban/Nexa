@@ -119,7 +119,7 @@ export default function NotificationMenu() {
             ? `View notifications, ${unreadCount} unread`
             : "View notifications"
         }
-        className="relative rounded-md border border-slate-200 p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400"
+        className="relative rounded-md border border-slate-200 p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
       >
         <Bell size={17} />
         {hasUnread && (
@@ -144,7 +144,7 @@ export default function NotificationMenu() {
               type="button"
               onClick={markAllAsRead}
               disabled={!hasUnread}
-              className="flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400 disabled:pointer-events-none disabled:opacity-40"
+              className="flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-40"
             >
               <CheckCheck size={13} aria-hidden="true" />
               Mark all as read
@@ -161,7 +161,7 @@ export default function NotificationMenu() {
               <p className="text-sm font-medium text-slate-700">
                 You&apos;re all caught up
               </p>
-              <p className="max-w-[15rem] text-xs text-slate-500">
+              <p className="max-w-60 text-xs text-slate-500">
                 New notifications will show up here.
               </p>
             </div>
@@ -177,7 +177,7 @@ export default function NotificationMenu() {
                       type="button"
                       role="menuitem"
                       onClick={() => markAsRead(notification.id)}
-                      className="flex w-full items-start gap-3 rounded-lg px-2.5 py-2.5 text-left transition-colors hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400"
+                      className="flex w-full items-start gap-3 rounded-lg px-2.5 py-2.5 text-left transition-colors hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
                     >
                       <span
                         className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${bgClass}`}

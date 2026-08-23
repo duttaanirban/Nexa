@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, FolderKanban, ListChecks, Compass } from "lucide-react";
 import { NAV_ITEMS, PROJECTS, TASKS } from "../../data/mockData";
@@ -82,19 +82,12 @@ export default function GlobalSearch() {
     [groups]
   );
 
-  useEffect(() => {
-    if (flatResults.length === 0) {
-      setHighlightedIndex(-1);
-    } else {
-      setHighlightedIndex((current) =>
-        Math.min(current, flatResults.length - 1)
-      );
-    }
-  }, [flatResults.length]);
-
   const hasResults = flatResults.length > 0;
+  const activeIndex = hasResults
+    ? Math.min(Math.max(highlightedIndex, 0), flatResults.length - 1)
+    : -1;
   const activeResult =
-    highlightedIndex >= 0 ? flatResults[highlightedIndex] : undefined;
+    activeIndex >= 0 ? flatResults[activeIndex] : undefined;
 
   const selectResult = (result) => {
     if (!result) return;
@@ -184,7 +177,7 @@ export default function GlobalSearch() {
                       onClick={() => selectResult(result)}
                       className={[
                         "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors",
-                        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400",
+                        "focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2",
                         isHighlighted
                           ? "bg-slate-100"
                           : "hover:bg-slate-50",

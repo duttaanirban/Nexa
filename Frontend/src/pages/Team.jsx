@@ -20,12 +20,12 @@ import { Search, Users, Mail } from "lucide-react";
  *   <Team members={members} />
  */
 export default function Team({ members = [] }) {
-  const safeMembers = Array.isArray(members) ? members : [];
-
   const [query, setQuery] = useState("");
   const normalizedQuery = query.trim().toLowerCase();
 
   const filteredMembers = useMemo(() => {
+    const safeMembers = Array.isArray(members) ? members : [];
+
     if (normalizedQuery === "") return safeMembers;
 
     return safeMembers.filter(
@@ -34,7 +34,7 @@ export default function Team({ members = [] }) {
         member.role?.toLowerCase().includes(normalizedQuery) ||
         member.initials?.toLowerCase().includes(normalizedQuery)
     );
-  }, [safeMembers, normalizedQuery]);
+  }, [members, normalizedQuery]);
 
   const hasActiveSearch = normalizedQuery !== "";
   const clearSearch = () => setQuery("");
@@ -88,7 +88,7 @@ export default function Team({ members = [] }) {
               <button
                 type="button"
                 onClick={clearSearch}
-                className="mt-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400"
+                className="mt-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
               >
                 Clear search
               </button>

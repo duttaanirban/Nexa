@@ -89,7 +89,7 @@ export default function Projects({ projects = [] }) {
                 aria-pressed={isActive}
                 className={[
                   "rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
-                  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400",
+                  "focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2",
                   isActive
                     ? "bg-slate-900 text-white"
                     : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50",
@@ -123,7 +123,7 @@ export default function Projects({ projects = [] }) {
               <button
                 type="button"
                 onClick={clearFilters}
-                className="mt-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400"
+                className="mt-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
               >
                 Clear search &amp; filters
               </button>

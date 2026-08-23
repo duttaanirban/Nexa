@@ -28,7 +28,6 @@ const PRIORITY_FILTERS = [
  *   <Tasks tasks={TASKS} filters={TASK_FILTERS} />
  */
 export default function Tasks({ tasks = [], filters = [] }) {
-  const safeTasks = Array.isArray(tasks) ? tasks : [];
   const safeFilters = Array.isArray(filters) ? filters : [];
 
   const [query, setQuery] = useState("");
@@ -38,6 +37,8 @@ export default function Tasks({ tasks = [], filters = [] }) {
   const normalizedQuery = query.trim().toLowerCase();
 
   const filteredTasks = useMemo(() => {
+    const safeTasks = Array.isArray(tasks) ? tasks : [];
+
     return safeTasks.filter((task) => {
       const matchesStatus =
         statusFilter === "all" || task.status === statusFilter;
@@ -54,7 +55,7 @@ export default function Tasks({ tasks = [], filters = [] }) {
 
       return matchesStatus && matchesPriority && matchesQuery;
     });
-  }, [safeTasks, statusFilter, priorityFilter, normalizedQuery]);
+  }, [tasks, statusFilter, priorityFilter, normalizedQuery]);
 
   const hasActiveFilters =
     normalizedQuery !== "" || statusFilter !== "all" || priorityFilter !== "all";
@@ -108,7 +109,7 @@ export default function Tasks({ tasks = [], filters = [] }) {
                   aria-pressed={isActive}
                   className={[
                     "rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
-                    "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400",
+                    "focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2",
                     isActive
                       ? "bg-slate-900 text-white"
                       : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50",
@@ -136,7 +137,7 @@ export default function Tasks({ tasks = [], filters = [] }) {
                 aria-pressed={isActive}
                 className={[
                   "rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
-                  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400",
+                  "focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2",
                   isActive
                     ? "bg-slate-900 text-white"
                     : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50",
@@ -170,7 +171,7 @@ export default function Tasks({ tasks = [], filters = [] }) {
               <button
                 type="button"
                 onClick={clearFilters}
-                className="mt-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400"
+                className="mt-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
               >
                 Clear search &amp; filters
               </button>

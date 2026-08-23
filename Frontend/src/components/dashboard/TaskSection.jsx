@@ -58,7 +58,7 @@ export default function TaskSection({
 
           <button
             type="button"
-            className="inline-flex items-center gap-1 text-sm font-medium text-slate-600 transition-colors hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400"
+            className="inline-flex items-center gap-1 text-sm font-medium text-slate-600 transition-colors hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
             aria-label="View all tasks"
           >
             View all
@@ -111,7 +111,7 @@ export default function TaskSection({
                 onClick={() =>
                   setSelectedFilter(filter.value)
                 }
-                className={`shrink-0 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400 ${
+                className={`shrink-0 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 ${
                   isSelected
                     ? "border-slate-900 bg-slate-900 text-white"
                     : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:text-slate-900"

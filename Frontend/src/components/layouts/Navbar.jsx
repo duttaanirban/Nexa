@@ -17,7 +17,7 @@ export default function Navbar({ onMenuClick = () => {} }) {
       <button
         type="button"
         onClick={onMenuClick}
-        className="rounded-md p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400 lg:hidden"
+        className="rounded-md p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 lg:hidden"
         aria-label="Open sidebar"
       >
         <Menu size={19} />

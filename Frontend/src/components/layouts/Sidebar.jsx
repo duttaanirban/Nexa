@@ -70,7 +70,7 @@ export default function Sidebar({ isOpen = false, onClose = () => {} }) {
           <button
             type="button"
             onClick={onClose}
-            className="rounded-md p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400 lg:hidden"
+            className="rounded-md p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 lg:hidden"
             aria-label="Close sidebar"
           >
             <X size={18} />
@@ -93,7 +93,7 @@ export default function Sidebar({ isOpen = false, onClose = () => {} }) {
                 className={({ isActive }) =>
                   [
                     "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                    "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400",
+                    "focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2",
                     isActive
                       ? "bg-slate-900 text-white"
                       : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",

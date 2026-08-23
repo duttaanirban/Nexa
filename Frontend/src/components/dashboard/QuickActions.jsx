@@ -48,7 +48,7 @@ export default function QuickActions({ actions = [] }) {
                 key={action.id}
                 type="button"
                 aria-label={action.label}
-                className="flex h-24 flex-col items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-900 transition-colors hover:border-slate-300 hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400"
+                className="flex h-24 flex-col items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-900 transition-colors hover:border-slate-300 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
               >
                 {Icon && (
                   <Icon size={20} className="text-slate-500" aria-hidden="true" />
