@@ -7,6 +7,7 @@ import {
   TASK_FILTERS,
   VELOCITY_CHART_DATA,
 } from "../data/mockData";
+import { ChevronDown } from "lucide-react";
 
 import ActivitySection from "../components/dashboard/ActivitySection";
 import DashboardSkeleton from "../components/dashboard/DashboardSkeleton";
@@ -16,6 +17,7 @@ import ProjectSection from "../components/dashboard/ProjectSection";
 import QuickActions from "../components/dashboard/QuickActions";
 import StatsGrid from "../components/dashboard/Statsgrid";
 import TaskSection from "../components/dashboard/TaskSection";
+import TeamWorkload from "../components/dashboard/TeamWorkload";
 
 /**
  * Dashboard
@@ -45,40 +47,57 @@ export default function Dashboard({
   }
 
   return (
-    <div className="flex flex-col gap-8">
-      {/* Dashboard header */}
+  <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-6">
+    {/* Header */}
+    <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">
+        <p className="text-sm font-medium text-indigo-600">
+          Pulse Workspace
+        </p>
+
+        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-950">
           Dashboard
         </h1>
 
         <p className="mt-1 text-sm text-slate-500">
-          Overview of your projects and tasks.
+          Welcome back, Mira. Here's what's happening with your team today.
         </p>
       </div>
 
-      {/* Statistics */}
-      <StatsGrid stats={STATS} />
+      <button
+        type="button"
+        className="flex w-fit items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+      >
+        <span>May 12 – May 18, 2025</span>
+        <ChevronDown size={16} className="text-slate-400" aria-hidden="true" />
+      </button>
+    </div>
 
-      {/* Productivity */}
+    {/* KPI cards */}
+    <StatsGrid stats={STATS} />
+
+    {/* Analytics */}
+    <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
       <ProductivityChart data={VELOCITY_CHART_DATA} />
 
-      {/* Quick actions */}
-      <QuickActions actions={QUICK_ACTIONS} />
+      <ActivitySection activities={RECENT_ACTIVITY} />
+    </div>
 
-      {/* Projects */}
+    {/* Projects + Team */}
+    <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
       <ProjectSection projects={PROJECTS} />
 
-      {/* Tasks */}
-      <TaskSection
-        tasks={TASKS}
-        filters={TASK_FILTERS}
-      />
-
-      {/* Recent activity */}
-      <ActivitySection
-        activities={RECENT_ACTIVITY}
-      />
+      <TeamWorkload />
     </div>
-  );
+
+    {/* Quick actions */}
+    <QuickActions actions={QUICK_ACTIONS} />
+
+    {/* Tasks */}
+    <TaskSection
+      tasks={TASKS}
+      filters={TASK_FILTERS}
+    />
+  </div>
+);
 }

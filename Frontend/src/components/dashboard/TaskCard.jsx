@@ -94,24 +94,24 @@ export default function TaskCard({ task = {} }) {
 
   return (
     <article
-      className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md sm:p-5"
+      className="min-w-0 w-full rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md sm:p-5"
       aria-labelledby={`task-title-${id}`}
     >
       {/* Task heading */}
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
+      <div className="flex min-w-0 items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
           <p className="font-mono text-xs text-slate-400">
             {id}
           </p>
 
           <h3
             id={`task-title-${id}`}
-            className="mt-1 text-base font-semibold text-slate-900"
+            className="mt-1 break-words text-base font-semibold leading-6 text-slate-900"
           >
             {title}
           </h3>
 
-          <p className="mt-1 truncate text-sm text-slate-500">
+          <p className="mt-1 break-words text-sm text-slate-500">
             {project}
           </p>
         </div>
@@ -136,7 +136,7 @@ export default function TaskCard({ task = {} }) {
       </div>
 
       {/* Task metadata */}
-      <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-500">
+      <div className="mt-4 flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-500">
         {/* Assignee */}
         <div className="inline-flex items-center gap-2">
           <span

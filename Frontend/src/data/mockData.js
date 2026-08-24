@@ -32,6 +32,7 @@ export const NAV_ITEMS = [
     label: "Dashboard",
     icon: LayoutDashboard,
     href: "/",
+    end: true,
   },
   {
     id: "projects",
@@ -45,7 +46,7 @@ export const NAV_ITEMS = [
     label: "Tasks",
     icon: ListChecks,
     href: "/tasks",
-    badge: 12,
+    badge: 5,
   },
   {
     id: "team",
@@ -70,21 +71,25 @@ export const QUICK_ACTIONS = [
     id: "backlog",
     label: "Backlog",
     icon: ListChecks,
+    section: "shortcut",
   },
   {
     id: "sprints",
     label: "Sprints",
     icon: GitBranch,
+    section: "shortcut",
   },
   {
     id: "reports",
     label: "Reports",
     icon: BarChart3,
+    section: "shortcut",
   },
   {
     id: "plugins",
     label: "Plugins",
     icon: Puzzle,
+    section: "shortcut",
   },
   {
     id: "alerts",
@@ -99,11 +104,13 @@ export const QUICK_ACTIONS = [
 
 export const CURRENT_USER = {
   id: "USR-001",
-  name: "Mira Kapoor",
+  name: "Dummy User",
   role: "Frontend Lead",
-  initials: "MK",
-  email: "mira.kapoor@example.com",
+  initials: "DU",
+  email: "dummyuser@example.com",
 };
+
+
 
 /* ---------------------------------------------------------------
    TOP-LEVEL DASHBOARD STATS
@@ -433,6 +440,7 @@ export const TEAM_MEMBERS = [
     name: "Mira Kapoor",
     role: "Frontend Lead",
     initials: "MK",
+    workload: 80,
     email: "mira.kapoor@example.com",
   },
   {
@@ -440,6 +448,7 @@ export const TEAM_MEMBERS = [
     name: "Arjun Khanna",
     role: "Backend Engineer",
     initials: "AK",
+    workload: 70,
     email: "arjun.khanna@example.com",
   },
   {
@@ -447,6 +456,7 @@ export const TEAM_MEMBERS = [
     name: "Riya Sen",
     role: "QA Engineer",
     initials: "RS",
+    workload: 60,
     email: "riya.sen@example.com",
   },
   {
@@ -454,6 +464,7 @@ export const TEAM_MEMBERS = [
     name: "Jay Thomas",
     role: "DevOps Engineer",
     initials: "JT",
+    workload: 50,
     email: "jay.thomas@example.com",
   },
   {
@@ -461,6 +472,7 @@ export const TEAM_MEMBERS = [
     name: "Priya Lal",
     role: "Product Manager",
     initials: "PL",
+    workload: 40,
     email: "priya.lal@example.com",
   },
 ];

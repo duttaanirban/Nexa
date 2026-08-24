@@ -17,9 +17,9 @@ const DEFAULT_PROJECT_OPTIONS = [
  */
 export default function Settings() {
   // Profile
-  const [fullName, setFullName] = useState("Mira Kapoor");
+  const [fullName, setFullName] = useState("Dummy user");
   const [role, setRole] = useState("Frontend Lead");
-  const [email, setEmail] = useState("mira.kapoor@example.com");
+  const [email, setEmail] = useState("dummyuser@example.com");
   const [profileSaved, setProfileSaved] = useState(false);
 
   // Notifications

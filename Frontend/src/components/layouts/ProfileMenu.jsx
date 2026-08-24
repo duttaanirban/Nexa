@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { ChevronDown, User, Settings, LogOut } from "lucide-react";
 
 const USER = {
-  name: "Mira Kapoor",
+  name: "Dummy User",
   role: "Frontend Lead",
-  initials: "MK",
+  initials: "DU",
 };
 
 const MENU_ITEMS = [

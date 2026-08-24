@@ -6,10 +6,6 @@ import TaskCard from "./TaskCard";
  * TaskSection
  *
  * Dashboard section for displaying, searching, and filtering tasks.
- *
- * Props:
- * - tasks: Array of task objects
- * - filters: Array<{ value: string, label: string }>
  */
 export default function TaskSection({
   tasks = [],
@@ -44,7 +40,7 @@ export default function TaskSection({
   return (
     <section
       aria-labelledby="tasks-heading"
-      className="flex flex-col gap-4"
+      className="flex min-w-0 flex-col gap-4"
     >
       {/* Section header */}
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -126,7 +122,7 @@ export default function TaskSection({
 
       {/* Task list / empty state */}
       {filteredTasks.length > 0 ? (
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div className="grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-2">
           {filteredTasks.map((task) => (
             <TaskCard
               key={task.id}

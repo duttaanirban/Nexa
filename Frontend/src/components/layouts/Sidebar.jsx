@@ -1,25 +1,9 @@
 import { NavLink } from "react-router-dom";
 import {
-  LayoutDashboard,
-  FolderKanban,
-  ListChecks,
-  Users,
-  Settings,
+  MoreHorizontal,
   X,
 } from "lucide-react";
-
-/**
- * Sidebar navigation items. `to` matches the routes defined in
- * App.jsx. Dashboard uses `end` (set on the NavLink below) so it's
- * only active on the exact `/` path, not on every nested route.
- */
-const NAV_ITEMS = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, to: "/", end: true },
-  { id: "projects", label: "Projects", icon: FolderKanban, to: "/projects" },
-  { id: "tasks", label: "Tasks", icon: ListChecks, to: "/tasks" },
-  { id: "team", label: "Team", icon: Users, to: "/team" },
-  { id: "settings", label: "Settings", icon: Settings, to: "/settings" },
-];
+import { CURRENT_USER, NAV_ITEMS, QUICK_ACTIONS } from "../../data/mockData";
 
 /**
  * Sidebar
@@ -48,78 +32,114 @@ export default function Sidebar({ isOpen = false, onClose = () => {} }) {
 
       <aside
         className={[
-          "fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 flex-col",
-          "border-r border-slate-200 bg-white",
+          "fixed inset-y-0 left-0 z-40 flex w-[min(280px,calc(100vw-1rem))] shrink-0 flex-col",
+          "border-r border-white/20 bg-slate-950/95 shadow-xl shadow-slate-950/20 backdrop-blur-xl",
           "transition-transform duration-200 ease-in-out",
           isOpen ? "translate-x-0" : "-translate-x-full",
           "lg:static lg:z-auto lg:translate-x-0",
         ].join(" ")}
         aria-label="Sidebar"
       >
-        <div className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200 px-5">
-          <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 text-sm font-semibold text-white">
+        <div className="flex h-[72px] shrink-0 items-center justify-between px-5">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600 text-base font-semibold text-white shadow-lg shadow-indigo-950/30">
               P
             </div>
-            <span className="text-sm font-semibold text-slate-900">
-              Pulse
-            </span>
+            <div>
+              <p className="text-base font-semibold tracking-tight text-white">Pulse</p>
+              <p className="text-[11px] text-slate-400">Dev Productivity</p>
+            </div>
           </div>
 
           {/* Close button — mobile only */}
           <button
             type="button"
             onClick={onClose}
-            className="rounded-md p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 lg:hidden"
+            className="rounded-md p-1.5 text-slate-400 hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 lg:hidden"
             aria-label="Close sidebar"
           >
             <X size={18} />
           </button>
         </div>
 
-        <nav
-          className="flex-1 space-y-1 overflow-y-auto px-3 py-4"
-          aria-label="Primary"
-        >
-          {NAV_ITEMS.map((item) => {
+        <nav className="flex-1 overflow-y-auto px-3 py-3" aria-label="Primary">
+          <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+            Workspace
+          </p>
+          <div className="space-y-1">
+            {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
 
             return (
               <NavLink
                 key={item.id}
-                to={item.to}
+                to={item.href}
                 end={item.end}
                 onClick={onClose}
                 className={({ isActive }) =>
                   [
-                    "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                    "focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2",
+                    "flex min-h-11 w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950",
                     isActive
-                      ? "bg-slate-900 text-white"
-                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
+                      ? "bg-indigo-600 text-white shadow-sm shadow-indigo-950/30"
+                      : "text-slate-300 hover:bg-white/10 hover:text-white",
                   ].join(" ")
                 }
               >
                 <Icon size={17} strokeWidth={2} aria-hidden="true" />
-                {item.label}
+                <span className="flex-1">{item.label}</span>
+                {item.badge && (
+                  <span className="rounded-full bg-white/10 px-2 py-0.5 text-[11px] font-medium text-slate-300">
+                    {item.badge}
+                  </span>
+                )}
               </NavLink>
             );
-          })}
+            })}
+          </div>
+
+          <p className="px-3 pb-2 pt-8 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+            Shortcuts
+          </p>
+          <div className="space-y-1">
+            {QUICK_ACTIONS.filter((item) => item.section === "shortcut").map((item) => {
+              const Icon = item.icon;
+
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={onClose}
+                  className="flex min-h-10 w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-slate-400 transition-colors hover:bg-indigo-500/20 hover:text-indigo-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+                >
+                  <Icon size={16} strokeWidth={1.8} aria-hidden="true" />
+                  {item.label}
+                </button>
+              );
+            })}
+          </div>
         </nav>
 
-        <div className="border-t border-slate-200 p-4">
-          <div className="flex items-center gap-3 rounded-lg px-2 py-2">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-200 text-xs font-semibold text-slate-700">
-              MK
+        <div className="border-t border-white/10 p-3">
+          <div className="flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-white/10">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-400/20 text-xs font-semibold text-indigo-200">
+              {CURRENT_USER.initials}
             </div>
             <div className="min-w-0 leading-tight">
-              <p className="truncate text-sm font-medium text-slate-900">
-                Mira Kapoor
+              <p className="truncate text-sm font-medium text-white">
+                {CURRENT_USER.name}
               </p>
-              <p className="truncate text-xs text-slate-500">
-                Frontend Lead
+              <p className="truncate text-xs text-slate-400">
+                {CURRENT_USER.role}
               </p>
             </div>
+            <button
+              type="button"
+              className="ml-auto rounded-md p-1.5 text-slate-500 hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+              aria-label="Open profile options"
+            >
+              <MoreHorizontal size={18} aria-hidden="true" />
+            </button>
           </div>
         </div>
       </aside>

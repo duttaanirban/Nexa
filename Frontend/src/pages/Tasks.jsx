@@ -15,17 +15,6 @@ const PRIORITY_FILTERS = [
  * Searchable, filterable tasks page. Fully driven by the `tasks` and
  * `filters` props — no data is imported or fetched here, and
  * TaskCard's own markup/styling is reused as-is.
- *
- * Props:
- * - tasks: Array — same shape TaskCard expects (id, title, project,
- *   assignee, due, priority, status).
- * - filters: Array<{ value: string, label: string }> — status filter
- *   options, e.g. { value: "all", label: "All" },
- *   { value: "in-progress", label: "In progress" }.
- *
- * Usage (e.g. wired up as the `/tasks` route):
- *   import { TASKS, TASK_FILTERS } from "../data/mockData";
- *   <Tasks tasks={TASKS} filters={TASK_FILTERS} />
  */
 export default function Tasks({ tasks = [], filters = [] }) {
   const safeFilters = Array.isArray(filters) ? filters : [];
@@ -58,7 +47,9 @@ export default function Tasks({ tasks = [], filters = [] }) {
   }, [tasks, statusFilter, priorityFilter, normalizedQuery]);
 
   const hasActiveFilters =
-    normalizedQuery !== "" || statusFilter !== "all" || priorityFilter !== "all";
+    normalizedQuery !== "" ||
+    statusFilter !== "all" ||
+    priorityFilter !== "all";
 
   const clearFilters = () => {
     setQuery("");
@@ -67,22 +58,35 @@ export default function Tasks({ tasks = [], filters = [] }) {
   };
 
   const resultCount = filteredTasks.length;
-  const resultLabel = `${resultCount} task${resultCount === 1 ? "" : "s"}`;
+  const resultLabel = `${resultCount} task${
+    resultCount === 1 ? "" : "s"
+  }`;
 
   return (
-    <main className="flex flex-col gap-6">
+    <main className="flex min-w-0 flex-col gap-6">
       {/* Page header */}
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">Tasks</h1>
+        <h1 className="text-xl font-semibold text-slate-900">
+          Tasks
+        </h1>
+
         <p className="mt-1 text-sm text-slate-500">
           Track and organize tasks across your projects.
         </p>
       </div>
 
       {/* Search + filters */}
-      <section aria-label="Search and filter tasks" className="flex flex-col gap-4">
+      <section
+        aria-label="Search and filter tasks"
+        className="flex min-w-0 flex-col gap-4"
+      >
         <div className="flex max-w-md items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 shadow-sm focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-500/30">
-          <Search size={15} className="shrink-0 text-slate-400" aria-hidden="true" />
+          <Search
+            size={15}
+            className="shrink-0 text-slate-400"
+            aria-hidden="true"
+          />
+
           <input
             type="text"
             value={query}
@@ -101,6 +105,7 @@ export default function Tasks({ tasks = [], filters = [] }) {
           >
             {safeFilters.map((filter) => {
               const isActive = statusFilter === filter.value;
+
               return (
                 <button
                   key={filter.value}
@@ -128,12 +133,16 @@ export default function Tasks({ tasks = [], filters = [] }) {
           className="flex flex-wrap items-center gap-1.5"
         >
           {PRIORITY_FILTERS.map((filter) => {
-            const isActive = priorityFilter === filter.value;
+            const isActive =
+              priorityFilter === filter.value;
+
             return (
               <button
                 key={filter.value}
                 type="button"
-                onClick={() => setPriorityFilter(filter.value)}
+                onClick={() =>
+                  setPriorityFilter(filter.value)
+                }
                 aria-pressed={isActive}
                 className={[
                   "rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
@@ -151,22 +160,35 @@ export default function Tasks({ tasks = [], filters = [] }) {
       </section>
 
       {/* Results */}
-      <section aria-label="Task results" className="flex flex-col gap-4">
-        <p className="text-sm text-slate-500" aria-live="polite">
+      <section
+        aria-label="Task results"
+        className="flex min-w-0 flex-col gap-4"
+      >
+        <p
+          className="text-sm text-slate-500"
+          aria-live="polite"
+        >
           {resultLabel}
         </p>
 
         {resultCount === 0 ? (
           <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center shadow-sm">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100">
-              <ListChecks size={18} className="text-slate-400" aria-hidden="true" />
+              <ListChecks
+                size={18}
+                className="text-slate-400"
+                aria-hidden="true"
+              />
             </div>
+
             <h2 className="text-sm font-semibold text-slate-900">
               No tasks found
             </h2>
+
             <p className="max-w-sm text-sm text-slate-500">
               Try changing your search or filters.
             </p>
+
             {hasActiveFilters && (
               <button
                 type="button"
@@ -178,9 +200,12 @@ export default function Tasks({ tasks = [], filters = [] }) {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <div className="grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-2">
             {filteredTasks.map((task) => (
-              <TaskCard key={task.id} task={task} />
+              <TaskCard
+                key={task.id}
+                task={task}
+              />
             ))}
           </div>
         )}
