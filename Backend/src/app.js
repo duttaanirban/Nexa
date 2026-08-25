@@ -5,6 +5,9 @@ const userRoutes = require("./routes/userRoutes");
 const projectRoutes = require("./routes/projectRoutes");
 const taskRoutes = require("./routes/taskRoutes");
 
+const notFound = require("./middleware/notFound");
+const errorHandler = require("./middleware/errorHandler");
+
 const app = express();
 
 app.use(cors());
@@ -20,5 +23,11 @@ app.get("/api/health", (req, res) => {
 app.use("/api/users", userRoutes);
 app.use("/api/projects", projectRoutes);
 app.use("/api/tasks", taskRoutes);
+
+// Must come AFTER all routes
+app.use(notFound);
+
+// Must be the LAST middleware
+app.use(errorHandler);
 
 module.exports = app;
