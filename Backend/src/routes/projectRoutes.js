@@ -6,10 +6,26 @@ const {
   createProject,
 } = require("../controllers/projectController");
 
+const {
+  validateRequiredFields,
+} = require("../middleware/validation");
+
 const router = express.Router();
 
+// GET /api/projects
 router.get("/", getProjects);
+
+// GET /api/projects/:id
 router.get("/:id", getProjectById);
-router.post("/", createProject);
+
+// POST /api/projects
+router.post(
+  "/",
+  validateRequiredFields([
+    "name",
+    "description",
+  ]),
+  createProject
+);
 
 module.exports = router;

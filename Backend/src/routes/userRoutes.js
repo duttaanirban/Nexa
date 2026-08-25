@@ -6,10 +6,28 @@ const {
   createUser,
 } = require("../controllers/userController");
 
+const {
+  validateRequiredFields,
+} = require("../middleware/validation");
+
 const router = express.Router();
 
+// GET /api/users
 router.get("/", getUsers);
+
+// GET /api/users/:id
 router.get("/:id", getUserById);
-router.post("/", createUser);
+
+// POST /api/users
+router.post(
+  "/",
+  validateRequiredFields([
+    "name",
+    "role",
+    "initials",
+    "email",
+  ]),
+  createUser
+);
 
 module.exports = router;
