@@ -1,8 +1,10 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Search, FolderKanban } from "lucide-react";
 import ProjectCard from "../components/dashboard/ProjectCard";
+import { api } from "../api/api";
 
 const STATUS_FILTERS = ["All", "On track", "In progress", "Blocked"];
+
 
 /**
  * Projects
@@ -19,9 +21,23 @@ const STATUS_FILTERS = ["All", "On track", "In progress", "Blocked"];
  *   import { PROJECTS } from "../data/mockData";
  *   <Projects projects={PROJECTS} />
  */
-export default function Projects({ projects = [] }) {
+export default function Projects() {
+  const [projects, setProjects] = useState([]);
+
+
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
+
+  useEffect(() => {
+  api.getProjects()
+    .then((response) => {
+      console.log("Projects from backend:", response);
+      setProjects(response.data);
+    })
+    .catch((error) => {
+      console.error("Projects API error:", error);
+    });
+}, []);
 
   const normalizedQuery = query.trim().toLowerCase();
 
