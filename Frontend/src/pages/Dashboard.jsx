@@ -36,21 +36,31 @@ export default function Dashboard({
   const [tasks, setTasks] = useState([]);
   const [users, setUsers] = useState([]);
 
+  const [isLoading, setIsLoading] = useState(true);
+  const [apiError, setApiError] = useState(null);
+
   useEffect(() => {
-    Promise.all([
-      api.getProjects(),
-      api.getTasks(),
-      api.getUsers(),
-    ])
-      .then(([projectsResponse, tasksResponse, usersResponse]) => {
-        setProjects(projectsResponse.data);
-        setTasks(tasksResponse.data);
-        setUsers(usersResponse.data);
-      })
-      .catch((error) => {
-        console.error("Dashboard API error:", error);
-      });
-  }, []);
+  setIsLoading(true);
+  setApiError(null);
+
+  Promise.all([
+    api.getProjects(),
+    api.getTasks(),
+    api.getUsers(),
+  ])
+    .then(([projectsResponse, tasksResponse, usersResponse]) => {
+      setProjects(projectsResponse.data);
+      setTasks(tasksResponse.data);
+      setUsers(usersResponse.data);
+    })
+    .catch((error) => {
+      console.error("Dashboard API error:", error);
+      setApiError(error);
+    })
+    .finally(() => {
+      setIsLoading(false);
+    });
+}, []);
 
   const stats = useMemo(() => {
     const activeProjects = projects.filter(
@@ -134,19 +144,21 @@ export default function Dashboard({
   });
 }, [users, tasks]);
 
-  if (loading) {
+  if (loading || isLoading) {
     return <DashboardSkeleton />;
   }
 
-  if (error) {
-    const errorMessage =
-      typeof error === "string"
-        ? error
-        : error?.message ||
-          "We couldn't load the dashboard. Please try again.";
+  if (error || apiError) {
+  const currentError = error || apiError;
 
-    return <ErrorState message={errorMessage} />;
-  }
+  const errorMessage =
+    typeof currentError === "string"
+      ? currentError
+      : currentError?.message ||
+        "We couldn't load the dashboard. Please try again.";
+
+  return <ErrorState message={errorMessage} />;
+}
 
   return (
     <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-6">
