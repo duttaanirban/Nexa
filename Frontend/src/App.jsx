@@ -20,10 +20,7 @@ export default function App() {
           <Route
             path="tasks"
             element={
-              <Tasks
-                tasks={TASKS}
-                filters={TASK_FILTERS}
-              />
+              <Tasks filters={TASK_FILTERS} />
             }
           />
           <Route

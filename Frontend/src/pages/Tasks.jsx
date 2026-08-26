@@ -1,6 +1,7 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Search, ListChecks } from "lucide-react";
 import TaskCard from "../components/dashboard/TaskCard";
+import { api } from "../api/api";
 
 const PRIORITY_FILTERS = [
   { value: "all", label: "All priorities" },
@@ -16,12 +17,25 @@ const PRIORITY_FILTERS = [
  * `filters` props — no data is imported or fetched here, and
  * TaskCard's own markup/styling is reused as-is.
  */
-export default function Tasks({ tasks = [], filters = [] }) {
+export default function Tasks({ filters = [] }) {
+  const [tasks, setTasks] = useState([]);
+  
   const safeFilters = Array.isArray(filters) ? filters : [];
 
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
+
+  useEffect(() => {
+  api.getTasks()
+    .then((response) => {
+      console.log("Tasks from backend:", response);
+      setTasks(response.data);
+    })
+    .catch((error) => {
+      console.error("Tasks API error:", error);
+    });
+}, []);
 
   const normalizedQuery = query.trim().toLowerCase();
 
