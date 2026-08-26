@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Search, Users, Mail } from "lucide-react";
+import { api } from "../api/api";
 
 /**
  * Team
@@ -19,8 +20,20 @@ import { Search, Users, Mail } from "lucide-react";
  * Usage (e.g. wired up as the `/team` route):
  *   <Team members={members} />
  */
-export default function Team({ members = [] }) {
+export default function Team() {
+  const [members, setMembers] = useState([]);
   const [query, setQuery] = useState("");
+
+  useEffect(() => {
+  api.getUsers()
+    .then((response) => {
+      console.log("Users from backend:", response);
+      setMembers(response.data);
+    })
+    .catch((error) => {
+      console.error("Users API error:", error);
+    });
+}, []);
   const normalizedQuery = query.trim().toLowerCase();
 
   const filteredMembers = useMemo(() => {

@@ -15,7 +15,7 @@ export default function App() {
           <Route index element={<Dashboard />} />
           <Route
             path="projects"
-            element={<Projects projects={PROJECTS} />}
+            element={<Projects />}
           />
           <Route
             path="tasks"
@@ -25,7 +25,7 @@ export default function App() {
           />
           <Route
             path="team"
-            element={<Team members={TEAM_MEMBERS} />}
+            element={<Team />}
           />
           <Route
             path="settings"

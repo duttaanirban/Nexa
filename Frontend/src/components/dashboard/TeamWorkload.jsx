@@ -1,7 +1,6 @@
 import { Users } from "lucide-react";
-import { TEAM_MEMBERS } from "../../data/mockData";
 
-export default function TeamWorkload({ members = TEAM_MEMBERS }) {
+export default function TeamWorkload({ members = [] }) {
   return (
     <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="flex items-center justify-between">
@@ -28,9 +27,12 @@ export default function TeamWorkload({ members = TEAM_MEMBERS }) {
           );
 
           return (
-            <div key={member.id} className="flex items-start gap-3">
+            <div
+              key={member.id}
+              className="flex items-start gap-3"
+            >
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-700">
-                  {member.initials}
+                {member.initials}
               </div>
 
               <div className="min-w-0 flex-1">
