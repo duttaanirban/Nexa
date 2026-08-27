@@ -27,7 +27,6 @@ export default function Team() {
   useEffect(() => {
   api.getUsers()
     .then((response) => {
-      console.log("Users from backend:", response);
       setMembers(response.data);
     })
     .catch((error) => {

@@ -29,7 +29,6 @@ export default function Tasks({ filters = [] }) {
   useEffect(() => {
   api.getTasks()
     .then((response) => {
-      console.log("Tasks from backend:", response);
       setTasks(response.data);
     })
     .catch((error) => {

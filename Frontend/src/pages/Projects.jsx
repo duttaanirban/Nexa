@@ -31,7 +31,6 @@ export default function Projects() {
   useEffect(() => {
   api.getProjects()
     .then((response) => {
-      console.log("Projects from backend:", response);
       setProjects(response.data);
     })
     .catch((error) => {

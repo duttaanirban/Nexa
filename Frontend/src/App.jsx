@@ -5,7 +5,7 @@ import Projects from "./pages/Projects";
 import Tasks from "./pages/Tasks";
 import Team from "./pages/Team";
 import Settings from "./pages/Settings";
-import { PROJECTS, TASKS, TASK_FILTERS, TEAM_MEMBERS } from "./data/mockData";
+import { TASK_FILTERS } from "./data/mockData";
 
 export default function App() {
   return (
