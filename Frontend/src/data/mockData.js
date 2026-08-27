@@ -110,47 +110,6 @@ export const CURRENT_USER = {
   email: "dummyuser@example.com",
 };
 
-
-
-/* ---------------------------------------------------------------
-   TOP-LEVEL DASHBOARD STATS
---------------------------------------------------------------- */
-
-export const STATS = [
-  {
-    id: "active-projects",
-    label: "Active projects",
-    value: "07",
-    delta: "+2 this month",
-    trend: "up",
-  },
-  {
-    id: "completed",
-    label: "Tasks completed",
-    value: "148",
-    delta: "+23 this week",
-    trend: "up",
-  },
-  {
-    id: "in-progress",
-    label: "In progress",
-    value: "19",
-    delta: "6 due soon",
-    trend: "neutral",
-  },
-  {
-    id: "overdue",
-    label: "Overdue",
-    value: "03",
-    delta: "needs attention",
-    trend: "down",
-  },
-];
-
-/* ---------------------------------------------------------------
-   PROJECTS
---------------------------------------------------------------- */
-
 export const PROJECTS = [
   {
     id: "PRJ-01",
@@ -239,58 +198,6 @@ export const TASK_FILTERS = [
   {
     value: "done",
     label: "Done",
-  },
-];
-
-/* ---------------------------------------------------------------
-   TASKS
---------------------------------------------------------------- */
-
-export const TASKS = [
-  {
-    id: "T-421",
-    title: "Add retry logic to card charge endpoint",
-    project: "Checkout Revamp",
-    assignee: "AK",
-    due: "Today",
-    priority: "High",
-    status: "in-progress",
-  },
-  {
-    id: "T-418",
-    title: "Write integration tests for webhook handler",
-    project: "Realtime Notifications",
-    assignee: "JT",
-    due: "Tomorrow",
-    priority: "Medium",
-    status: "todo",
-  },
-  {
-    id: "T-402",
-    title: "Migrate color tokens to OKLCH",
-    project: "Design Tokens",
-    assignee: "SD",
-    due: "Overdue",
-    priority: "High",
-    status: "blocked",
-  },
-  {
-    id: "T-397",
-    title: "QA pass on saved-card UI",
-    project: "Checkout Revamp",
-    assignee: "RS",
-    due: "Fri",
-    priority: "Low",
-    status: "review",
-  },
-  {
-    id: "T-390",
-    title: "Set up push notification certificates",
-    project: "Realtime Notifications",
-    assignee: "PL",
-    due: "Mon",
-    priority: "Medium",
-    status: "done",
   },
 ];
 
@@ -431,48 +338,5 @@ export const VELOCITY_CHART_DATA = [
     day: "11 Tue",
     opened: 27,
     closed: 33,
-  },
-];
-
-export const TEAM_MEMBERS = [
-  {
-    id: "USR-001",
-    name: "Mira Kapoor",
-    role: "Frontend Lead",
-    initials: "MK",
-    workload: 80,
-    email: "mira.kapoor@example.com",
-  },
-  {
-    id: "USR-002",
-    name: "Arjun Khanna",
-    role: "Backend Engineer",
-    initials: "AK",
-    workload: 70,
-    email: "arjun.khanna@example.com",
-  },
-  {
-    id: "USR-003",
-    name: "Riya Sen",
-    role: "QA Engineer",
-    initials: "RS",
-    workload: 60,
-    email: "riya.sen@example.com",
-  },
-  {
-    id: "USR-004",
-    name: "Jay Thomas",
-    role: "DevOps Engineer",
-    initials: "JT",
-    workload: 50,
-    email: "jay.thomas@example.com",
-  },
-  {
-    id: "USR-005",
-    name: "Priya Lal",
-    role: "Product Manager",
-    initials: "PL",
-    workload: 40,
-    email: "priya.lal@example.com",
   },
 ];
