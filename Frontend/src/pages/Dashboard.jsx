@@ -6,7 +6,7 @@ import {
 } from "../data/mockData";
 
 import { useEffect, useMemo, useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Check } from "lucide-react";
 import { api } from "../api/api";
 
 import ActivitySection from "../components/dashboard/ActivitySection";
@@ -36,31 +36,34 @@ export default function Dashboard({
   const [tasks, setTasks] = useState([]);
   const [users, setUsers] = useState([]);
 
+  const [dateRange, setDateRange] = useState("This week");
+  const [isDateMenuOpen, setIsDateMenuOpen] = useState(false);
+
   const [isLoading, setIsLoading] = useState(true);
   const [apiError, setApiError] = useState(null);
 
   useEffect(() => {
-  setIsLoading(true);
-  setApiError(null);
+    setIsLoading(true);
+    setApiError(null);
 
-  Promise.all([
-    api.getProjects(),
-    api.getTasks(),
-    api.getUsers(),
-  ])
-    .then(([projectsResponse, tasksResponse, usersResponse]) => {
-      setProjects(projectsResponse.data);
-      setTasks(tasksResponse.data);
-      setUsers(usersResponse.data);
-    })
-    .catch((error) => {
-      console.error("Dashboard API error:", error);
-      setApiError(error);
-    })
-    .finally(() => {
-      setIsLoading(false);
-    });
-}, []);
+    Promise.all([
+      api.getProjects(),
+      api.getTasks(),
+      api.getUsers(),
+    ])
+      .then(([projectsResponse, tasksResponse, usersResponse]) => {
+        setProjects(projectsResponse.data);
+        setTasks(tasksResponse.data);
+        setUsers(usersResponse.data);
+      })
+      .catch((error) => {
+        console.error("Dashboard API error:", error);
+        setApiError(error);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  }, []);
 
   const stats = useMemo(() => {
     const activeProjects = projects.filter(
@@ -120,51 +123,110 @@ export default function Dashboard({
   }, [projects, tasks]);
 
   const teamWorkload = useMemo(() => {
-  return users.map((user) => {
-    const assignedTasks = tasks.filter(
-      (task) => task.assignee === user.initials
-    );
+    return users.map((user) => {
+      const assignedTasks = tasks.filter(
+        (task) => task.assignee === user.initials
+      );
 
-    const activeTasks = assignedTasks.filter(
-      (task) => task.status !== "done"
-    ).length;
+      const activeTasks = assignedTasks.filter(
+        (task) => task.status !== "done"
+      ).length;
 
-    const workload =
-      assignedTasks.length === 0
-        ? 0
-        : Math.min(
-            100,
-            Math.round((activeTasks / assignedTasks.length) * 100)
-          );
+      const workload =
+        assignedTasks.length === 0
+          ? 0
+          : Math.min(
+              100,
+              Math.round(
+                (activeTasks / assignedTasks.length) * 100
+              )
+            );
 
-    return {
-      ...user,
-      workload,
-    };
-  });
-}, [users, tasks]);
+      return {
+        ...user,
+        workload,
+      };
+    });
+  }, [users, tasks]);
 
   if (loading || isLoading) {
     return <DashboardSkeleton />;
   }
 
   if (error || apiError) {
-  const currentError = error || apiError;
+    const currentError = error || apiError;
 
-  const errorMessage =
-    typeof currentError === "string"
-      ? currentError
-      : currentError?.message ||
-        "We couldn't load the dashboard. Please try again.";
+    const errorMessage =
+      typeof currentError === "string"
+        ? currentError
+        : currentError?.message ||
+          "We couldn't load the dashboard. Please try again.";
 
-  return <ErrorState message={errorMessage} />;
-}
+    return <ErrorState message={errorMessage} />;
+  }
+
+  const getDateRange = (range) => {
+    const today = new Date();
+
+    if (range === "Today") {
+      return {
+        start: today,
+        end: today,
+      };
+    }
+
+    const day = today.getDay();
+
+    const startOfCurrentWeek = new Date(today);
+
+    startOfCurrentWeek.setDate(
+      today.getDate() - day + 1
+    );
+
+    if (range === "Last week") {
+      startOfCurrentWeek.setDate(
+        startOfCurrentWeek.getDate() - 7
+      );
+    }
+
+    const end = new Date(startOfCurrentWeek);
+
+    end.setDate(
+      startOfCurrentWeek.getDate() + 6
+    );
+
+    return {
+      start: startOfCurrentWeek,
+      end,
+    };
+  };
+
+  const formatDateRange = (range) => {
+    const { start, end } = getDateRange(range);
+
+    const format = (date) =>
+      date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+
+    if (range === "Today") {
+      return format(start);
+    }
+
+    return `${format(start)} – ${format(end)}`;
+  };
+
+  const displayedDateRange =
+    formatDateRange(dateRange);
 
   return (
     <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-6">
 
       {/* Header */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+
         <div>
           <p className="text-sm font-medium text-indigo-600">
             Pulse Workspace
@@ -179,18 +241,65 @@ export default function Dashboard({
           </p>
         </div>
 
-        <button
-          type="button"
-          className="flex w-fit items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
-        >
-          <span>May 12 – May 18, 2025</span>
+        {/* Date selector */}
+        <div className="relative">
 
-          <ChevronDown
-            size={16}
-            className="text-slate-400"
-            aria-hidden="true"
-          />
-        </button>
+          <button
+            type="button"
+            onClick={() =>
+              setIsDateMenuOpen((open) => !open)
+            }
+            aria-haspopup="menu"
+            aria-expanded={isDateMenuOpen}
+            className="flex w-fit items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+          >
+            <span>{displayedDateRange}</span>
+
+            <ChevronDown
+              size={16}
+              className={`text-slate-400 transition-transform ${
+                isDateMenuOpen ? "rotate-180" : ""
+              }`}
+              aria-hidden="true"
+            />
+          </button>
+
+          {isDateMenuOpen && (
+            <div
+              role="menu"
+              className="absolute right-0 z-50 mt-2 w-40 rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg"
+            >
+              {[
+                "Today",
+                "This week",
+                "Last week",
+              ].map((range) => (
+                <button
+                  key={range}
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    setDateRange(range);
+                    setIsDateMenuOpen(false);
+                  }}
+                  className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm text-slate-700 transition hover:bg-slate-50"
+                >
+                  <span>{range}</span>
+
+                  {dateRange === range && (
+                    <Check
+                      size={15}
+                      className="text-indigo-600"
+                      aria-hidden="true"
+                    />
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+
+        </div>
+
       </div>
 
       {/* KPI cards */}
@@ -216,7 +325,9 @@ export default function Dashboard({
           projects={projects}
         />
 
-        <TeamWorkload members={teamWorkload} />
+        <TeamWorkload
+          members={teamWorkload}
+        />
 
       </div>
 
