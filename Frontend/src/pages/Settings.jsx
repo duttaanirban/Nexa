@@ -10,7 +10,7 @@ const DEFAULT_PROJECT_OPTIONS = [
 /**
  * Settings
  *
- * Local-only settings page: profile, notifications, appearance,
+ * Local-only settings page: profile, notifications,
  * workspace, and a danger zone. Every field is controlled React
  * state scoped to this component — nothing is persisted, fetched,
  * or imported from mockData.
@@ -26,9 +26,6 @@ export default function Settings() {
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [taskReminders, setTaskReminders] = useState(true);
   const [projectUpdates, setProjectUpdates] = useState(false);
-
-  // Appearance
-  const [theme, setTheme] = useState("system");
 
   // Workspace
   const [workspaceName, setWorkspaceName] = useState("Pulse");
@@ -198,48 +195,6 @@ export default function Settings() {
             />
           </div>
         </div>
-      </section>
-
-      {/* Appearance */}
-      <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
-        <h2 className="text-base font-semibold text-slate-900">Appearance</h2>
-        <p className="mt-1 text-sm text-slate-500">
-          Choose how Pulse looks on your device.
-        </p>
-
-        <fieldset className="mt-4">
-          <legend className="sr-only">Theme</legend>
-          <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
-            {[
-              { value: "light", label: "Light" },
-              { value: "dark", label: "Dark" },
-              { value: "system", label: "System" },
-            ].map((option) => (
-              <label
-                key={option.value}
-                htmlFor={`theme-${option.value}`}
-                className={[
-                  "flex flex-1 cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors",
-                  "has-focus-visible:ring-2 has-focus-visible:ring-slate-400 has-focus-visible:ring-offset-2",
-                  theme === option.value
-                    ? "border-slate-900 bg-slate-50 text-slate-900"
-                    : "border-slate-200 text-slate-600 hover:bg-slate-50",
-                ].join(" ")}
-              >
-                <input
-                  id={`theme-${option.value}`}
-                  type="radio"
-                  name="theme"
-                  value={option.value}
-                  checked={theme === option.value}
-                  onChange={(event) => setTheme(event.target.value)}
-                  className="h-3.5 w-3.5 accent-slate-900"
-                />
-                {option.label}
-              </label>
-            ))}
-          </div>
-        </fieldset>
       </section>
 
       {/* Workspace */}

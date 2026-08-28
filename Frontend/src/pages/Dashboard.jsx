@@ -43,9 +43,6 @@ export default function Dashboard({
   const [apiError, setApiError] = useState(null);
 
   useEffect(() => {
-    setIsLoading(true);
-    setApiError(null);
-
     Promise.all([
       api.getProjects(),
       api.getTasks(),
