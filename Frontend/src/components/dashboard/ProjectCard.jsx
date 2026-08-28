@@ -1,4 +1,6 @@
-import { CheckCircle2, AlertTriangle, XCircle, Circle, Info } from "lucide-react";
+import { CheckCircle2, AlertTriangle, XCircle, Circle, Info, MoreVertical,
+Pencil,
+Trash2, } from "lucide-react";
 
 /**
  * Maps a project's `variant` to its status badge + progress bar
@@ -55,7 +57,12 @@ const VARIANT_STYLES = {
  *   import { PROJECTS } from "../data/mockdata";
  *   {PROJECTS.map((project) => <ProjectCard key={project.id} project={project} />)}
  */
-export default function ProjectCard({ project }) {
+export default function ProjectCard({
+  project,
+  showActions = false,
+  onEdit = () => {},
+  onDelete = () => {},
+}) {
   const { id, name, description, progress, status, variant = "neutral", team = [] } = project;
   const { icon: StatusIcon, badgeClass, barClass } =
     VARIANT_STYLES[variant] ?? VARIANT_STYLES.neutral;
@@ -76,12 +83,57 @@ export default function ProjectCard({ project }) {
           </h3>
         </div>
 
-        <span
-          className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ${badgeClass}`}
+        <div className="flex shrink-0 items-start gap-2">
+  <span
+    className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ${badgeClass}`}
+  >
+    <StatusIcon size={13} aria-hidden="true" />
+    {status}
+  </span>
+
+  {showActions && (
+    <details className="relative">
+      <summary
+        className="flex h-7 w-7 cursor-pointer list-none items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+        aria-label={`Actions for ${name}`}
+      >
+        <MoreVertical size={17} aria-hidden="true" />
+      </summary>
+
+      <div className="absolute right-0 top-8 z-50 w-40 rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg">
+        <button
+          type="button"
+          onClick={(event) => {
+            event.currentTarget
+              .closest("details")
+              ?.removeAttribute("open");
+
+            onEdit(project);
+          }}
+          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-slate-700 transition-colors hover:bg-slate-50"
         >
-          <StatusIcon size={13} aria-hidden="true" />
-          {status}
-        </span>
+          <Pencil size={15} className="text-slate-500" />
+          Edit project
+        </button>
+
+        <button
+          type="button"
+          onClick={(event) => {
+            event.currentTarget
+              .closest("details")
+              ?.removeAttribute("open");
+
+            onDelete(project);
+          }}
+          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-red-600 transition-colors hover:bg-red-50"
+        >
+          <Trash2 size={15} />
+          Delete project
+        </button>
+      </div>
+    </details>
+  )}
+</div>
       </div>
 
       <p className="mt-2 line-clamp-2 text-sm text-slate-500">{description}</p>

@@ -12,26 +12,52 @@ async function request(endpoint, options = {}) {
   const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(data.message || "Something went wrong");
+    throw new Error(
+      data.message || "Something went wrong"
+    );
   }
 
   return data;
 }
 
 export const api = {
-  getUsers: () => request("/users"),
+  // Users
+  getUsers: () =>
+    request("/users"),
 
-  getUserById: (id) => request(`/users/${id}`),
+  getUserById: (id) =>
+    request(`/users/${id}`),
 
-  getProjects: () => request("/projects"),
+  // Projects
+  getProjects: () =>
+    request("/projects"),
 
-  getProjectById: (id) => request(`/projects/${id}`),
+  getProjectById: (id) =>
+    request(`/projects/${id}`),
 
-  getTasks: (params = "") => request(`/tasks${params}`),
+  createProject: (project) =>
+    request("/projects", {
+      method: "POST",
+      body: JSON.stringify(project),
+    }),
 
-  getTaskById: (id) => request(`/tasks/${id}`),
+  updateProject: (id, project) =>
+    request(`/projects/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(project),
+    }),
 
-  getActivity: () => request("/activity"),
+  deleteProject: (id) =>
+    request(`/projects/${id}`, {
+      method: "DELETE",
+    }),
+
+  // Tasks
+  getTasks: (params = "") =>
+    request(`/tasks${params}`),
+
+  getTaskById: (id) =>
+    request(`/tasks/${id}`),
 
   createTask: (task) =>
     request("/tasks", {
@@ -55,4 +81,8 @@ export const api = {
     request(`/tasks/${id}`, {
       method: "DELETE",
     }),
+
+  // Activity
+  getActivity: () =>
+    request("/activity"),
 };

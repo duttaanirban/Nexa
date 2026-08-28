@@ -4,6 +4,8 @@ const {
   getProjects,
   getProjectById,
   createProject,
+  updateProject,
+  deleteProject,
 } = require("../controllers/projectController");
 
 const {
@@ -27,5 +29,18 @@ router.post(
   ]),
   createProject
 );
+
+// PUT /api/projects/:id
+router.put(
+  "/:id",
+  validateRequiredFields([
+    "name",
+    "description",
+  ]),
+  updateProject
+);
+
+// DELETE /api/projects/:id
+router.delete("/:id", deleteProject);
 
 module.exports = router;

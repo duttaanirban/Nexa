@@ -1,3 +1,5 @@
+const { addActivity } = require("../services/activityService");
+
 const projects = [
   {
     id: "PRJ-01",
@@ -81,6 +83,13 @@ const createProject = (req, res) => {
 
   projects.push(newProject);
 
+  addActivity({
+    type: "project-created",
+    title: "Created new project",
+    description: newProject.name,
+    project: newProject.name,
+  });
+
   res.status(201).json({
     success: true,
     message: "Project created successfully",
@@ -88,8 +97,93 @@ const createProject = (req, res) => {
   });
 };
 
+const updateProject = (req, res) => {
+  const projectIndex = projects.findIndex(
+    (project) => project.id === req.params.id
+  );
+
+  if (projectIndex === -1) {
+    return res.status(404).json({
+      success: false,
+      message: "Project not found",
+    });
+  }
+
+  const {
+    name,
+    description,
+    progress = 0,
+    status = "On track",
+    team = [],
+  } = req.body;
+
+  if (!name || !description) {
+    return res.status(400).json({
+      success: false,
+      message: "Name and description are required",
+    });
+  }
+
+  projects[projectIndex] = {
+    id: projects[projectIndex].id,
+    name,
+    description,
+    progress,
+    status,
+    team,
+  };
+
+  const updatedProject = projects[projectIndex];
+
+  addActivity({
+    type: "project-updated",
+    title: "Updated project",
+    description: updatedProject.name,
+    project: updatedProject.name,
+  });
+
+  res.status(200).json({
+    success: true,
+    message: "Project updated successfully",
+    data: updatedProject,
+  });
+};
+
+const deleteProject = (req, res) => {
+  const projectIndex = projects.findIndex(
+    (project) => project.id === req.params.id
+  );
+
+  if (projectIndex === -1) {
+    return res.status(404).json({
+      success: false,
+      message: "Project not found",
+    });
+  }
+
+  const deletedProject = projects.splice(
+    projectIndex,
+    1
+  )[0];
+
+  addActivity({
+    type: "project-deleted",
+    title: "Deleted project",
+    description: deletedProject.name,
+    project: deletedProject.name,
+  });
+
+  res.status(200).json({
+    success: true,
+    message: "Project deleted successfully",
+    data: deletedProject,
+  });
+};
+
 module.exports = {
   getProjects,
   getProjectById,
   createProject,
+  updateProject,
+  deleteProject,
 };
