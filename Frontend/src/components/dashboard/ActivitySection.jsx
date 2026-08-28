@@ -4,8 +4,10 @@ import {
   CheckCircle2,
   Circle,
   FolderKanban,
+  Pencil,
   PlusCircle,
-  TrendingUp,
+  Trash2,
+  Clock3,
 } from "lucide-react";
 
 const ACTIVITY_VARIANTS = {
@@ -13,21 +15,40 @@ const ACTIVITY_VARIANTS = {
     icon: CheckCircle2,
     className: "bg-emerald-50 text-emerald-700",
   },
-  "project-updated": {
-    icon: FolderKanban,
-    className: "bg-blue-50 text-blue-700",
-  },
+
   "task-created": {
     icon: PlusCircle,
     className: "bg-violet-50 text-violet-700",
   },
+
+  "task-updated": {
+    icon: Pencil,
+    className: "bg-blue-50 text-blue-700",
+  },
+
+  "task-status-changed": {
+    icon: Clock3,
+    className: "bg-amber-50 text-amber-700",
+  },
+
+  "task-deleted": {
+    icon: Trash2,
+    className: "bg-red-50 text-red-700",
+  },
+
+  "project-updated": {
+    icon: FolderKanban,
+    className: "bg-blue-50 text-blue-700",
+  },
+
+  "project-progress": {
+    icon: FolderKanban,
+    className: "bg-amber-50 text-amber-700",
+  },
+
   "task-blocked": {
     icon: AlertCircle,
     className: "bg-red-50 text-red-700",
-  },
-  "project-progress": {
-    icon: TrendingUp,
-    className: "bg-amber-50 text-amber-700",
   },
 };
 
@@ -36,13 +57,73 @@ const FALLBACK_ACTIVITY = {
   className: "bg-slate-100 text-slate-600",
 };
 
+const formatRelativeTime = (timestamp) => {
+  if (!timestamp) {
+    return "Time unavailable";
+  }
+
+  const date = new Date(timestamp);
+
+  if (Number.isNaN(date.getTime())) {
+    return "Time unavailable";
+  }
+
+  const diffInSeconds = Math.floor(
+    (Date.now() - date.getTime()) / 1000
+  );
+
+  if (diffInSeconds < 10) {
+    return "Just now";
+  }
+
+  if (diffInSeconds < 60) {
+    return `${diffInSeconds}s ago`;
+  }
+
+  const diffInMinutes = Math.floor(
+    diffInSeconds / 60
+  );
+
+  if (diffInMinutes < 60) {
+    return `${diffInMinutes}m ago`;
+  }
+
+  const diffInHours = Math.floor(
+    diffInMinutes / 60
+  );
+
+  if (diffInHours < 24) {
+    return `${diffInHours}h ago`;
+  }
+
+  const diffInDays = Math.floor(
+    diffInHours / 24
+  );
+
+  if (diffInDays < 7) {
+    return `${diffInDays}d ago`;
+  }
+
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+};
+
 /**
  * ActivitySection
  *
  * Renders a chronological feed of recent dashboard activity.
  *
- * Props:
- * - activities: Array of activity objects
+ * Backend activity format:
+ * - id
+ * - type
+ * - title
+ * - description
+ * - project
+ * - user
+ * - timestamp
  */
 export default function ActivitySection({
   activities = [],
@@ -94,7 +175,6 @@ export default function ActivitySection({
           </p>
         </div>
       ) : (
-        /* Activity feed */
         <ol className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
           {activities.map((activity, index) => {
             const activityVariant =
@@ -139,8 +219,13 @@ export default function ActivitySection({
                       {activityTitle}
                     </p>
 
-                    <time className="shrink-0 text-xs text-slate-400">
-                      {activity.time || "Time unavailable"}
+                    <time
+                      dateTime={activity.timestamp}
+                      className="shrink-0 text-xs text-slate-400"
+                    >
+                      {formatRelativeTime(
+                        activity.timestamp
+                      )}
                     </time>
                   </div>
 
@@ -152,7 +237,8 @@ export default function ActivitySection({
                   <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
                     <span>
                       Project:{" "}
-                      {activity.project || "No project"}
+                      {activity.project ||
+                        "No project"}
                     </span>
 
                     <span aria-hidden="true">
@@ -160,7 +246,9 @@ export default function ActivitySection({
                     </span>
 
                     <span>
-                      By {activity.user || "Unknown user"}
+                      By{" "}
+                      {activity.user ||
+                        "Unknown user"}
                     </span>
                   </div>
                 </div>
