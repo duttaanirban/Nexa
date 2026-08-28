@@ -1,3 +1,4 @@
+const { addActivity } = require("../services/activityService");
 const tasks = [
   {
     id: "T-421",
@@ -124,6 +125,13 @@ const createTask = (req, res) => {
   };
 
   tasks.push(newTask);
+  addActivity({
+  type: "task-created",
+  title: "Created new task",
+  description: newTask.title,
+  project: newTask.project,
+  user: newTask.assignee,
+});
 
   res.status(201).json({
     success: true,
@@ -170,6 +178,13 @@ const updateTask = (req, res) => {
     priority,
     status,
   };
+  addActivity({
+  type: "task-updated",
+  title: "Updated task",
+  description: tasks[taskIndex].title,
+  project: tasks[taskIndex].project,
+  user: tasks[taskIndex].assignee,
+});
 
   res.status(200).json({
     success: true,
@@ -208,6 +223,19 @@ const updateTaskStatus = (req, res) => {
   }
 
   task.status = status;
+  addActivity({
+  type:
+    status === "done"
+      ? "task-completed"
+      : "task-status-changed",
+  title:
+    status === "done"
+      ? "Completed task"
+      : "Updated task status",
+  description: task.title,
+  project: task.project,
+  user: task.assignee,
+});
 
   res.status(200).json({
     success: true,
@@ -229,6 +257,13 @@ const deleteTask = (req, res) => {
   }
 
   const deletedTask = tasks.splice(taskIndex, 1)[0];
+  addActivity({
+  type: "task-deleted",
+  title: "Deleted task",
+  description: deletedTask.title,
+  project: deletedTask.project,
+  user: deletedTask.assignee,
+});
 
   res.status(200).json({
     success: true,
