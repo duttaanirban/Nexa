@@ -1,7 +1,6 @@
 import {
   QUICK_ACTIONS,
   TASK_FILTERS,
-  RECENT_ACTIVITY,
   VELOCITY_CHART_DATA,
 } from "../data/mockData";
 
@@ -35,6 +34,7 @@ export default function Dashboard({
   const [projects, setProjects] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [users, setUsers] = useState([]);
+  const [activities, setActivities] = useState([]);
 
   const [dateRange, setDateRange] = useState("This week");
   const [isDateMenuOpen, setIsDateMenuOpen] = useState(false);
@@ -47,11 +47,23 @@ export default function Dashboard({
       api.getProjects(),
       api.getTasks(),
       api.getUsers(),
+      api.getActivity(),
     ])
-      .then(([projectsResponse, tasksResponse, usersResponse]) => {
+      .then(
+      ([
+        projectsResponse,
+        tasksResponse,
+        usersResponse,
+        activitiesResponse,
+      ]) => {
         setProjects(projectsResponse.data);
         setTasks(tasksResponse.data);
         setUsers(usersResponse.data);
+        setActivities(
+          Array.isArray(activitiesResponse.data)
+            ? activitiesResponse.data
+            : []
+        );
       })
       .catch((error) => {
         console.error("Dashboard API error:", error);
@@ -310,7 +322,7 @@ export default function Dashboard({
         />
 
         <ActivitySection
-          activities={RECENT_ACTIVITY}
+          activities={activities}
         />
 
       </div>

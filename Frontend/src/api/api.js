@@ -31,6 +31,8 @@ export const api = {
 
   getTaskById: (id) => request(`/tasks/${id}`),
 
+  getActivity: () => request("/activity"),
+
   createTask: (task) =>
     request("/tasks", {
       method: "POST",

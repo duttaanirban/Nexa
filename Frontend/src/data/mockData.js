@@ -218,58 +218,6 @@ export const TASK_PRIORITIES = {
 };
 
 /* ---------------------------------------------------------------
-   RECENT ACTIVITY
---------------------------------------------------------------- */
-
-export const RECENT_ACTIVITY = [
-  {
-    id: "ACT-001",
-    type: "task-completed",
-    title: "Completed task",
-    description: "QA pass on saved-card UI",
-    project: "Checkout Revamp",
-    user: "RS",
-    time: "12 min ago",
-  },
-  {
-    id: "ACT-002",
-    type: "project-updated",
-    title: "Updated project",
-    description: "Realtime Notifications",
-    project: "Realtime Notifications",
-    user: "JT",
-    time: "34 min ago",
-  },
-  {
-    id: "ACT-003",
-    type: "task-created",
-    title: "Created new task",
-    description: "Write integration tests for webhook handler",
-    project: "Realtime Notifications",
-    user: "JT",
-    time: "1 hr ago",
-  },
-  {
-    id: "ACT-004",
-    type: "task-blocked",
-    title: "Task blocked",
-    description: "Migrate color tokens to OKLCH",
-    project: "Design Tokens",
-    user: "SD",
-    time: "2 hrs ago",
-  },
-  {
-    id: "ACT-005",
-    type: "project-progress",
-    title: "Project progress updated",
-    description: "Checkout Revamp reached 72%",
-    project: "Checkout Revamp",
-    user: "AK",
-    time: "3 hrs ago",
-  },
-];
-
-/* ---------------------------------------------------------------
    PRODUCTIVITY / VELOCITY DATA
 --------------------------------------------------------------- */
 
