@@ -3,6 +3,8 @@ import { Plus, Search, ListChecks, X } from "lucide-react";
 
 import TaskCard from "../components/dashboard/TaskCard";
 import { api } from "../api/api";
+import DeleteConfirmModal from "../components/ui/DeleteConfirmModal";
+import Toast from "../components/ui/Toast";
 
 const PRIORITY_FILTERS = [
   { value: "all", label: "All priorities" },
@@ -38,7 +40,42 @@ export default function Tasks({ filters = [] }) {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Delete confirmation state
+  const [deletingTask, setDeletingTask] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Toast state
+  const [toast, setToast] = useState({
+    open: false,
+    message: "",
+  });
+
   const safeFilters = Array.isArray(filters) ? filters : [];
+
+  /* ------------------------------------------------------------
+     Toast helpers
+  ------------------------------------------------------------ */
+
+  const showToast = (message) => {
+    setToast({
+      open: true,
+      message,
+    });
+
+    setTimeout(() => {
+      setToast({
+        open: false,
+        message: "",
+      });
+    }, 3000);
+  };
+
+  const closeToast = () => {
+    setToast({
+      open: false,
+      message: "",
+    });
+  };
 
   /* ------------------------------------------------------------
      Load tasks, users and projects
@@ -57,6 +94,7 @@ export default function Tasks({ filters = [] }) {
       );
     } catch (error) {
       console.error("Tasks API error:", error);
+
       setApiError(
         error?.message ||
           "We couldn't load the tasks."
@@ -179,6 +217,7 @@ export default function Tasks({ filters = [] }) {
   const openCreateForm = () => {
     setEditingTask(null);
     setForm(EMPTY_FORM);
+    setApiError(null);
     setIsFormOpen(true);
   };
 
@@ -194,6 +233,7 @@ export default function Tasks({ filters = [] }) {
       status: task.status || "todo",
     });
 
+    setApiError(null);
     setIsFormOpen(true);
   };
 
@@ -246,6 +286,8 @@ export default function Tasks({ filters = [] }) {
             due: form.due.trim(),
           }
         );
+
+        showToast("Task updated successfully.");
       } else {
         await api.createTask({
           ...form,
@@ -254,11 +296,15 @@ export default function Tasks({ filters = [] }) {
           assignee: form.assignee.trim(),
           due: form.due.trim(),
         });
+
+        showToast("Task created successfully.");
       }
 
       await loadTasks();
 
-      closeForm();
+      setIsFormOpen(false);
+      setEditingTask(null);
+      setForm(EMPTY_FORM);
     } catch (error) {
       console.error(
         "Task save error:",
@@ -293,6 +339,10 @@ export default function Tasks({ filters = [] }) {
       );
 
       await loadTasks();
+
+      showToast(
+        "Task status updated successfully."
+      );
     } catch (error) {
       console.error(
         "Task status update error:",
@@ -310,19 +360,38 @@ export default function Tasks({ filters = [] }) {
      Delete
   ------------------------------------------------------------ */
 
-  const handleDelete = async (task) => {
-    const confirmed = window.confirm(
-      `Delete "${task.title}"? This action cannot be undone.`
-    );
+  const requestDelete = (task) => {
+    setApiError(null);
+    setDeletingTask(task);
+  };
 
-    if (!confirmed) return;
+  const cancelDelete = () => {
+    if (isDeleting) return;
+
+    setDeletingTask(null);
+  };
+
+  const confirmDelete = async () => {
+    if (!deletingTask || isDeleting) {
+      return;
+    }
 
     try {
+      setIsDeleting(true);
       setApiError(null);
 
-      await api.deleteTask(task.id);
+      await api.deleteTask(deletingTask.id);
 
-      await loadTasks();
+      setTasks((current) =>
+        current.filter(
+          (task) =>
+            task.id !== deletingTask.id
+        )
+      );
+
+      setDeletingTask(null);
+
+      showToast("Task deleted successfully.");
     } catch (error) {
       console.error(
         "Task delete error:",
@@ -333,6 +402,8 @@ export default function Tasks({ filters = [] }) {
         error?.message ||
           "We couldn't delete the task."
       );
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -364,6 +435,7 @@ export default function Tasks({ filters = [] }) {
 
   return (
     <main className="flex min-w-0 flex-col gap-6">
+
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
@@ -414,6 +486,7 @@ export default function Tasks({ filters = [] }) {
           <Search
             size={15}
             className="shrink-0 text-slate-400"
+            aria-hidden="true"
           />
 
           <input
@@ -428,6 +501,7 @@ export default function Tasks({ filters = [] }) {
           />
         </div>
 
+        {/* Status filters */}
         {safeFilters.length > 0 && (
           <div
             role="group"
@@ -447,6 +521,7 @@ export default function Tasks({ filters = [] }) {
                       filter.value
                     )
                   }
+                  aria-pressed={isActive}
                   className={[
                     "rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
                     isActive
@@ -461,6 +536,7 @@ export default function Tasks({ filters = [] }) {
           </div>
         )}
 
+        {/* Priority filters */}
         <div
           role="group"
           aria-label="Filter tasks by priority"
@@ -479,6 +555,7 @@ export default function Tasks({ filters = [] }) {
                     filter.value
                   )
                 }
+                aria-pressed={isActive}
                 className={[
                   "rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
                   isActive
@@ -498,7 +575,10 @@ export default function Tasks({ filters = [] }) {
         aria-label="Task results"
         className="flex min-w-0 flex-col gap-4"
       >
-        <p className="text-sm text-slate-500">
+        <p
+          className="text-sm text-slate-500"
+          aria-live="polite"
+        >
           {resultLabel}
         </p>
 
@@ -537,7 +617,7 @@ export default function Tasks({ filters = [] }) {
                 task={task}
                 showActions={true}
                 onEdit={openEditForm}
-                onDelete={handleDelete}
+                onDelete={requestDelete}
                 onStatusChange={handleStatusChange}
               />
             ))}
@@ -552,7 +632,8 @@ export default function Tasks({ filters = [] }) {
           role="presentation"
           onMouseDown={(event) => {
             if (
-              event.target === event.currentTarget
+              event.target ===
+              event.currentTarget
             ) {
               closeForm();
             }
@@ -586,7 +667,7 @@ export default function Tasks({ filters = [] }) {
                 type="button"
                 onClick={closeForm}
                 disabled={isSubmitting}
-                className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
                 aria-label="Close task form"
               >
                 <X size={18} />
@@ -613,7 +694,8 @@ export default function Tasks({ filters = [] }) {
                   onChange={handleFormChange}
                   placeholder="Enter task title"
                   required
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20"
+                  disabled={isSubmitting}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 disabled:bg-slate-50"
                 />
               </div>
 
@@ -632,7 +714,8 @@ export default function Tasks({ filters = [] }) {
                   value={form.project}
                   onChange={handleFormChange}
                   required
-                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20"
+                  disabled={isSubmitting}
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 disabled:bg-slate-50"
                 >
                   <option value="">
                     Select project
@@ -663,7 +746,8 @@ export default function Tasks({ filters = [] }) {
                   name="assignee"
                   value={form.assignee}
                   onChange={handleFormChange}
-                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20"
+                  disabled={isSubmitting}
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 disabled:bg-slate-50"
                 >
                   <option value="">
                     Unassigned
@@ -695,11 +779,13 @@ export default function Tasks({ filters = [] }) {
                   value={form.due}
                   onChange={handleFormChange}
                   placeholder="e.g. Tomorrow"
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20"
+                  disabled={isSubmitting}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 disabled:bg-slate-50"
                 />
               </div>
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+
                 {/* Priority */}
                 <div>
                   <label
@@ -714,7 +800,8 @@ export default function Tasks({ filters = [] }) {
                     name="priority"
                     value={form.priority}
                     onChange={handleFormChange}
-                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20"
+                    disabled={isSubmitting}
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 disabled:bg-slate-50"
                   >
                     <option value="High">
                       High
@@ -744,7 +831,8 @@ export default function Tasks({ filters = [] }) {
                     name="status"
                     value={form.status}
                     onChange={handleFormChange}
-                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20"
+                    disabled={isSubmitting}
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 disabled:bg-slate-50"
                   >
                     {safeFilters
                       .filter(
@@ -791,6 +879,24 @@ export default function Tasks({ filters = [] }) {
           </div>
         </div>
       )}
+
+      {/* Delete confirmation */}
+      <DeleteConfirmModal
+        open={Boolean(deletingTask)}
+        title="Delete task?"
+        itemName={deletingTask?.title}
+        description="This action cannot be undone."
+        isDeleting={isDeleting}
+        onCancel={cancelDelete}
+        onConfirm={confirmDelete}
+      />
+
+      {/* Success toast */}
+      <Toast
+        open={toast.open}
+        message={toast.message}
+        onClose={closeToast}
+      />
     </main>
   );
 }
