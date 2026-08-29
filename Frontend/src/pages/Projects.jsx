@@ -1,5 +1,12 @@
 import { useMemo, useState, useEffect } from "react";
-import { Search, FolderKanban, Plus } from "lucide-react";
+import {
+  Search,
+  FolderKanban,
+  Plus,
+  X,
+  Trash2,
+  AlertTriangle,
+} from "lucide-react";
 import ProjectCard from "../components/dashboard/ProjectCard";
 import { api } from "../api/api";
 
@@ -22,6 +29,10 @@ export default function Projects() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
 
+  const [isSaving, setIsSaving] = useState(false);
+  const [deletingProject, setDeletingProject] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -43,7 +54,9 @@ export default function Projects() {
       })
       .catch((error) => {
         console.error("Projects API error:", error);
-        setActionError(error.message);
+        setActionError(
+          error.message || "Failed to load projects."
+        );
       })
       .finally(() => {
         setIsLoading(false);
@@ -122,6 +135,8 @@ export default function Projects() {
   };
 
   const closeForm = () => {
+    if (isSaving) return;
+
     setIsFormOpen(false);
     setEditingProject(null);
   };
@@ -137,6 +152,8 @@ export default function Projects() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+
+    if (isSaving) return;
 
     setActionError(null);
 
@@ -161,6 +178,8 @@ export default function Projects() {
       return;
     }
 
+    setIsSaving(true);
+
     try {
       if (editingProject) {
         await api.updateProject(
@@ -171,41 +190,66 @@ export default function Projects() {
         await api.createProject(projectData);
       }
 
-      closeForm();
+      setIsFormOpen(false);
+      setEditingProject(null);
+
+      setFormData({
+        name: "",
+        description: "",
+        progress: 0,
+        status: "On track",
+        team: "",
+      });
+
       loadProjects();
     } catch (error) {
       console.error("Project save error:", error);
+
       setActionError(
         error.message || "Failed to save project."
       );
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  const handleDelete = async (project) => {
-    const confirmed = window.confirm(
-      `Delete "${project.name}"? This action cannot be undone.`
-    );
+  const requestDelete = (project) => {
+    setActionError(null);
+    setDeletingProject(project);
+  };
 
-    if (!confirmed) {
+  const cancelDelete = () => {
+    if (isDeleting) return;
+
+    setDeletingProject(null);
+  };
+
+  const confirmDelete = async () => {
+    if (!deletingProject || isDeleting) {
       return;
     }
 
+    setIsDeleting(true);
     setActionError(null);
 
     try {
-      await api.deleteProject(project.id);
+      await api.deleteProject(deletingProject.id);
 
       setProjects((current) =>
         current.filter(
-          (item) => item.id !== project.id
+          (item) => item.id !== deletingProject.id
         )
       );
+
+      setDeletingProject(null);
     } catch (error) {
       console.error("Project delete error:", error);
 
       setActionError(
         error.message || "Failed to delete project."
       );
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -237,9 +281,18 @@ export default function Projects() {
       {actionError && (
         <div
           role="alert"
-          className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+          className="flex items-center justify-between gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
         >
-          {actionError}
+          <span>{actionError}</span>
+
+          <button
+            type="button"
+            onClick={() => setActionError(null)}
+            className="shrink-0 rounded-md p-1 text-red-500 hover:bg-red-100 hover:text-red-700"
+            aria-label="Dismiss error"
+          >
+            <X size={15} />
+          </button>
         </div>
       )}
 
@@ -328,16 +381,27 @@ export default function Projects() {
             </h2>
 
             <p className="max-w-sm text-sm text-slate-500">
-              Try changing your search or filter.
+              {hasActiveFilters
+                ? "Try changing your search or filter."
+                : "Create your first project to get started."}
             </p>
 
-            {hasActiveFilters && (
+            {hasActiveFilters ? (
               <button
                 type="button"
                 onClick={clearFilters}
                 className="mt-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
               >
                 Clear search &amp; filters
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={openCreateForm}
+                className="mt-1 inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-slate-800"
+              >
+                <Plus size={14} />
+                Create project
               </button>
             )}
           </div>
@@ -349,7 +413,7 @@ export default function Projects() {
                 project={project}
                 showActions
                 onEdit={openEditForm}
-                onDelete={handleDelete}
+                onDelete={requestDelete}
               />
             ))}
           </div>
@@ -365,21 +429,33 @@ export default function Projects() {
           aria-labelledby="project-form-title"
         >
           <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-5 shadow-xl sm:p-6">
-            <div className="mb-5">
-              <h2
-                id="project-form-title"
-                className="text-lg font-semibold text-slate-900"
-              >
-                {editingProject
-                  ? "Edit project"
-                  : "Create project"}
-              </h2>
+            <div className="mb-5 flex items-start justify-between gap-4">
+              <div>
+                <h2
+                  id="project-form-title"
+                  className="text-lg font-semibold text-slate-900"
+                >
+                  {editingProject
+                    ? "Edit project"
+                    : "Create project"}
+                </h2>
 
-              <p className="mt-1 text-sm text-slate-500">
-                {editingProject
-                  ? "Update the project details."
-                  : "Add a new project to your workspace."}
-              </p>
+                <p className="mt-1 text-sm text-slate-500">
+                  {editingProject
+                    ? "Update the project details."
+                    : "Add a new project to your workspace."}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={closeForm}
+                disabled={isSaving}
+                className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+                aria-label="Close project form"
+              >
+                <X size={18} />
+              </button>
             </div>
 
             <form
@@ -396,7 +472,8 @@ export default function Projects() {
                   value={formData.name}
                   onChange={handleFormChange}
                   required
-                  className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
+                  disabled={isSaving}
+                  className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-200 disabled:bg-slate-50"
                   placeholder="e.g. Mobile App Revamp"
                 />
               </label>
@@ -411,8 +488,9 @@ export default function Projects() {
                   value={formData.description}
                   onChange={handleFormChange}
                   required
+                  disabled={isSaving}
                   rows={3}
-                  className="resize-none rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
+                  className="resize-none rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-200 disabled:bg-slate-50"
                   placeholder="What is this project about?"
                 />
               </label>
@@ -430,7 +508,8 @@ export default function Projects() {
                     max="100"
                     value={formData.progress}
                     onChange={handleFormChange}
-                    className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
+                    disabled={isSaving}
+                    className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-200 disabled:bg-slate-50"
                   />
                 </label>
 
@@ -443,7 +522,8 @@ export default function Projects() {
                     name="status"
                     value={formData.status}
                     onChange={handleFormChange}
-                    className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
+                    disabled={isSaving}
+                    className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-200 disabled:bg-slate-50"
                   >
                     <option>On track</option>
                     <option>In progress</option>
@@ -461,7 +541,8 @@ export default function Projects() {
                   name="team"
                   value={formData.team}
                   onChange={handleFormChange}
-                  className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
+                  disabled={isSaving}
+                  className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-200 disabled:bg-slate-50"
                   placeholder="AK, RS, MN"
                 />
 
@@ -474,21 +555,90 @@ export default function Projects() {
                 <button
                   type="button"
                   onClick={closeForm}
-                  className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                  disabled={isSaving}
+                  className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Cancel
                 </button>
 
                 <button
                   type="submit"
-                  className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
+                  disabled={isSaving}
+                  className="inline-flex min-w-[110px] items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {editingProject
-                    ? "Save changes"
-                    : "Create project"}
+                  {isSaving
+                    ? editingProject
+                      ? "Saving..."
+                      : "Creating..."
+                    : editingProject
+                      ? "Save changes"
+                      : "Create project"}
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete confirmation modal */}
+      {deletingProject && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/40 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delete-project-title"
+        >
+          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-xl sm:p-6">
+            <div className="flex items-start gap-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-50">
+                <AlertTriangle
+                  size={20}
+                  className="text-red-600"
+                  aria-hidden="true"
+                />
+              </div>
+
+              <div className="min-w-0">
+                <h2
+                  id="delete-project-title"
+                  className="text-lg font-semibold text-slate-900"
+                >
+                  Delete project?
+                </h2>
+
+                <p className="mt-1 text-sm leading-6 text-slate-500">
+                  Are you sure you want to delete{" "}
+                  <span className="font-medium text-slate-700">
+                    "{deletingProject.name}"
+                  </span>
+                  ? This action cannot be undone.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={cancelDelete}
+                disabled={isDeleting}
+                className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                onClick={confirmDelete}
+                disabled={isDeleting}
+                className="inline-flex min-w-[110px] items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <Trash2 size={15} aria-hidden="true" />
+
+                {isDeleting
+                  ? "Deleting..."
+                  : "Delete project"}
+              </button>
+            </div>
           </div>
         </div>
       )}
