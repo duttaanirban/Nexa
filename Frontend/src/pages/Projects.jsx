@@ -4,11 +4,12 @@ import {
   FolderKanban,
   Plus,
   X,
-  Trash2,
-  AlertTriangle,
 } from "lucide-react";
+
 import ProjectCard from "../components/dashboard/ProjectCard";
 import { api } from "../api/api";
+import DeleteConfirmModal from "../components/ui/DeleteConfirmModal";
+import Toast from "../components/ui/Toast";
 
 const STATUS_FILTERS = [
   "All",
@@ -33,6 +34,11 @@ export default function Projects() {
   const [deletingProject, setDeletingProject] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const [toast, setToast] = useState({
+    open: false,
+    message: "",
+  });
+
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -40,6 +46,27 @@ export default function Projects() {
     status: "On track",
     team: "",
   });
+
+  const showToast = (message) => {
+    setToast({
+      open: true,
+      message,
+    });
+
+    setTimeout(() => {
+      setToast({
+        open: false,
+        message: "",
+      });
+    }, 3000);
+  };
+
+  const closeToast = () => {
+    setToast({
+      open: false,
+      message: "",
+    });
+  };
 
   const loadProjects = () => {
     setIsLoading(true);
@@ -54,6 +81,7 @@ export default function Projects() {
       })
       .catch((error) => {
         console.error("Projects API error:", error);
+
         setActionError(
           error.message || "Failed to load projects."
         );
@@ -160,11 +188,14 @@ export default function Projects() {
     const projectData = {
       name: formData.name.trim(),
       description: formData.description.trim(),
+
       progress: Math.min(
         100,
         Math.max(0, Number(formData.progress) || 0)
       ),
+
       status: formData.status,
+
       team: formData.team
         .split(",")
         .map((member) => member.trim())
@@ -186,8 +217,12 @@ export default function Projects() {
           editingProject.id,
           projectData
         );
+
+        showToast("Project updated successfully.");
       } else {
         await api.createProject(projectData);
+
+        showToast("Project created successfully.");
       }
 
       setIsFormOpen(false);
@@ -242,6 +277,8 @@ export default function Projects() {
       );
 
       setDeletingProject(null);
+
+      showToast("Project deleted successfully.");
     } catch (error) {
       console.error("Project delete error:", error);
 
@@ -255,6 +292,7 @@ export default function Projects() {
 
   return (
     <main className="flex min-w-0 flex-col gap-6">
+
       {/* Page header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
@@ -580,68 +618,23 @@ export default function Projects() {
         </div>
       )}
 
-      {/* Delete confirmation modal */}
-      {deletingProject && (
-        <div
-          className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/40 p-4"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="delete-project-title"
-        >
-          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-xl sm:p-6">
-            <div className="flex items-start gap-4">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-50">
-                <AlertTriangle
-                  size={20}
-                  className="text-red-600"
-                  aria-hidden="true"
-                />
-              </div>
+      {/* Delete confirmation */}
+      <DeleteConfirmModal
+        open={Boolean(deletingProject)}
+        title="Delete project?"
+        itemName={deletingProject?.name}
+        description="This action cannot be undone."
+        isDeleting={isDeleting}
+        onCancel={cancelDelete}
+        onConfirm={confirmDelete}
+      />
 
-              <div className="min-w-0">
-                <h2
-                  id="delete-project-title"
-                  className="text-lg font-semibold text-slate-900"
-                >
-                  Delete project?
-                </h2>
-
-                <p className="mt-1 text-sm leading-6 text-slate-500">
-                  Are you sure you want to delete{" "}
-                  <span className="font-medium text-slate-700">
-                    "{deletingProject.name}"
-                  </span>
-                  ? This action cannot be undone.
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-6 flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={cancelDelete}
-                disabled={isDeleting}
-                className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Cancel
-              </button>
-
-              <button
-                type="button"
-                onClick={confirmDelete}
-                disabled={isDeleting}
-                className="inline-flex min-w-[110px] items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                <Trash2 size={15} aria-hidden="true" />
-
-                {isDeleting
-                  ? "Deleting..."
-                  : "Delete project"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Success toast */}
+      <Toast
+        open={toast.open}
+        message={toast.message}
+        onClose={closeToast}
+      />
     </main>
   );
 }
