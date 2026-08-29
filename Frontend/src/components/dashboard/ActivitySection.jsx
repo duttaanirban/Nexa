@@ -37,9 +37,20 @@ const ACTIVITY_VARIANTS = {
     className: "bg-red-50 text-red-700",
   },
 
+  // PROJECT ACTIVITIES
+  "project-created": {
+    icon: PlusCircle,
+    className: "bg-violet-50 text-violet-700",
+  },
+
   "project-updated": {
-    icon: FolderKanban,
+    icon: Pencil,
     className: "bg-blue-50 text-blue-700",
+  },
+
+  "project-deleted": {
+    icon: Trash2,
+    className: "bg-red-50 text-red-700",
   },
 
   "project-progress": {
@@ -52,7 +63,6 @@ const ACTIVITY_VARIANTS = {
     className: "bg-red-50 text-red-700",
   },
 };
-
 const FALLBACK_ACTIVITY = {
   icon: Circle,
   className: "bg-slate-100 text-slate-600",
