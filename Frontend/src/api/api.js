@@ -85,4 +85,22 @@ export const api = {
   // Activity
   getActivity: () =>
     request("/activity"),
+
+  // Team
+  createUser: (user) =>
+  request("/users", {
+    method: "POST",
+    body: JSON.stringify(user),
+  }),
+
+updateUser: (id, user) =>
+  request(`/users/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(user),
+  }),
+
+deleteUser: (id) =>
+  request(`/users/${id}`, {
+    method: "DELETE",
+  }),
 };

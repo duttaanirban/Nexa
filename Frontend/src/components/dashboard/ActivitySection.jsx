@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   AlertCircle,
   ArrowRight,
@@ -80,25 +81,19 @@ const formatRelativeTime = (timestamp) => {
     return `${diffInSeconds}s ago`;
   }
 
-  const diffInMinutes = Math.floor(
-    diffInSeconds / 60
-  );
+  const diffInMinutes = Math.floor(diffInSeconds / 60);
 
   if (diffInMinutes < 60) {
     return `${diffInMinutes}m ago`;
   }
 
-  const diffInHours = Math.floor(
-    diffInMinutes / 60
-  );
+  const diffInHours = Math.floor(diffInMinutes / 60);
 
   if (diffInHours < 24) {
     return `${diffInHours}h ago`;
   }
 
-  const diffInDays = Math.floor(
-    diffInHours / 24
-  );
+  const diffInDays = Math.floor(diffInHours / 24);
 
   if (diffInDays < 7) {
     return `${diffInDays}d ago`;
@@ -114,7 +109,12 @@ const formatRelativeTime = (timestamp) => {
 /**
  * ActivitySection
  *
- * Renders a chronological feed of recent dashboard activity.
+ * Renders a chronological feed of dashboard activity.
+ *
+ * Dashboard behavior:
+ * - Shows the latest 3 activities by default.
+ * - "View all" expands the complete activity list.
+ * - "View less" collapses it back to 3 activities.
  *
  * Backend activity format:
  * - id
@@ -128,6 +128,14 @@ const formatRelativeTime = (timestamp) => {
 export default function ActivitySection({
   activities = [],
 }) {
+  const [showAll, setShowAll] = useState(false);
+
+  const visibleActivities = showAll
+    ? activities
+    : activities.slice(0, 3);
+
+  const hasMoreActivities = activities.length > 3;
+
   return (
     <section
       aria-labelledby="recent-activity-heading"
@@ -142,17 +150,24 @@ export default function ActivitySection({
           Recent activity
         </h2>
 
-        <button
-          type="button"
-          className="inline-flex items-center gap-1 text-sm font-medium text-slate-600 transition-colors hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
-          aria-label="View all activity"
-        >
-          View all
-          <ArrowRight
-            size={14}
-            aria-hidden="true"
-          />
-        </button>
+        {hasMoreActivities && (
+          <button
+            type="button"
+            onClick={() => setShowAll((current) => !current)}
+            className="inline-flex items-center gap-1 text-sm font-medium text-slate-600 transition-colors hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
+            aria-expanded={showAll}
+          >
+            {showAll ? "View less" : "View all"}
+
+            <ArrowRight
+              size={14}
+              aria-hidden="true"
+              className={`transition-transform ${
+                showAll ? "-rotate-90" : ""
+              }`}
+            />
+          </button>
+        )}
       </div>
 
       {/* Empty state */}
@@ -176,7 +191,7 @@ export default function ActivitySection({
         </div>
       ) : (
         <ol className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-          {activities.map((activity, index) => {
+          {visibleActivities.map((activity, index) => {
             const activityVariant =
               ACTIVITY_VARIANTS[activity.type] ??
               FALLBACK_ACTIVITY;
@@ -187,7 +202,7 @@ export default function ActivitySection({
               activity.title || "Activity update";
 
             const isLast =
-              index === activities.length - 1;
+              index === visibleActivities.length - 1;
 
             return (
               <li

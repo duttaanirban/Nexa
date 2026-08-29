@@ -4,6 +4,8 @@ const {
   getUsers,
   getUserById,
   createUser,
+  updateUser,
+  deleteUser,
 } = require("../controllers/userController");
 
 const {
@@ -29,5 +31,20 @@ router.post(
   ]),
   createUser
 );
+
+// PUT /api/users/:id
+router.put(
+  "/:id",
+  validateRequiredFields([
+    "name",
+    "role",
+    "initials",
+    "email",
+  ]),
+  updateUser
+);
+
+// DELETE /api/users/:id
+router.delete("/:id", deleteUser);
 
 module.exports = router;

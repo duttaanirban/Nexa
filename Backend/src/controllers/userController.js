@@ -31,7 +31,9 @@ const getUsers = (req, res) => {
 };
 
 const getUserById = (req, res) => {
-  const user = users.find((user) => user.id === req.params.id);
+  const user = users.find(
+    (user) => user.id === req.params.id
+  );
 
   if (!user) {
     return res.status(404).json({
@@ -47,12 +49,18 @@ const getUserById = (req, res) => {
 };
 
 const createUser = (req, res) => {
-  const { name, role, initials, email } = req.body;
+  const {
+    name,
+    role,
+    initials,
+    email,
+  } = req.body;
 
   if (!name || !role || !initials || !email) {
     return res.status(400).json({
       success: false,
-      message: "Name, role, initials, and email are required",
+      message:
+        "Name, role, initials, and email are required",
     });
   }
 
@@ -73,8 +81,76 @@ const createUser = (req, res) => {
   });
 };
 
+const updateUser = (req, res) => {
+  const userIndex = users.findIndex(
+    (user) => user.id === req.params.id
+  );
+
+  if (userIndex === -1) {
+    return res.status(404).json({
+      success: false,
+      message: "User not found",
+    });
+  }
+
+  const {
+    name,
+    role,
+    initials,
+    email,
+  } = req.body;
+
+  if (!name || !role || !initials || !email) {
+    return res.status(400).json({
+      success: false,
+      message:
+        "Name, role, initials, and email are required",
+    });
+  }
+
+  users[userIndex] = {
+    id: users[userIndex].id,
+    name,
+    role,
+    initials,
+    email,
+  };
+
+  res.status(200).json({
+    success: true,
+    message: "User updated successfully",
+    data: users[userIndex],
+  });
+};
+
+const deleteUser = (req, res) => {
+  const userIndex = users.findIndex(
+    (user) => user.id === req.params.id
+  );
+
+  if (userIndex === -1) {
+    return res.status(404).json({
+      success: false,
+      message: "User not found",
+    });
+  }
+
+  const deletedUser = users.splice(
+    userIndex,
+    1
+  )[0];
+
+  res.status(200).json({
+    success: true,
+    message: "User deleted successfully",
+    data: deletedUser,
+  });
+};
+
 module.exports = {
   getUsers,
   getUserById,
   createUser,
+  updateUser,
+  deleteUser,
 };
