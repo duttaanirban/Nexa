@@ -34,11 +34,11 @@ export default function Sidebar({
 
       <aside
         className={[
-          "fixed inset-y-0 left-0 z-40 flex w-[min(280px,calc(100vw-1rem))] shrink-0 flex-col",
+          "fixed inset-y-0 left-0 z-40 flex h-screen w-[min(280px,calc(100vw-1rem))] shrink-0 flex-col",
           "border-r border-white/20 bg-slate-950/95 shadow-xl shadow-slate-950/20 backdrop-blur-xl",
           "transition-transform duration-200 ease-in-out",
           isOpen ? "translate-x-0" : "-translate-x-full",
-          "lg:static lg:z-auto lg:translate-x-0",
+          "lg:sticky lg:top-0 lg:z-auto lg:translate-x-0",
         ].join(" ")}
         aria-label="Sidebar"
       >
@@ -67,7 +67,10 @@ export default function Sidebar({
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto px-3 py-3" aria-label="Primary">
+        <nav
+          className="min-h-0 flex-1 overflow-y-auto px-3 py-3"
+          aria-label="Primary"
+        >
           <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
             Workspace
           </p>
