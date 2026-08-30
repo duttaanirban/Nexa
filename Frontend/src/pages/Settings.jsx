@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { api } from "../api/api";
+import { useCurrentUser } from "../context/CurrentUserContext";
 
 const DEFAULT_PROJECT_OPTIONS = [
   "No default project",
@@ -44,6 +45,8 @@ export default function Settings() {
   const profileSectionRef = useRef(null);
   const accountSectionRef = useRef(null);
 
+  const { updateCurrentUser } = useCurrentUser();
+
   /*
  * Load current profile
  */
@@ -59,6 +62,7 @@ useEffect(() => {
 
       const user =
         response.data?.data ?? response.data;
+      updateCurrentUser(user);
 
       setFullName(user.name || "");
       setRole(user.role || "");
@@ -157,6 +161,7 @@ useEffect(() => {
       );
 
       const updatedUser = response.data?.data ?? response.data;
+      updateCurrentUser(updatedUser);
 
       setFullName(updatedUser.name || "");
       setRole(updatedUser.role || "");

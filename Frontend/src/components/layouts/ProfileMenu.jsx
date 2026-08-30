@@ -5,10 +5,8 @@ import {
   Settings,
   LogOut,
 } from "lucide-react";
-import { api } from "../../api/api";
+import { useCurrentUser } from "../../context/CurrentUserContext";
 import { useNavigate } from "react-router-dom";
-
-const CURRENT_USER_ID = "USR-001";
 
 const MENU_ITEMS = [
   {
@@ -30,51 +28,14 @@ const MENU_ITEMS = [
 ];
 
 export default function ProfileMenu() {
+  const { user, loading } = useCurrentUser();
   const navigate = useNavigate();
-  const [isOpen, setIsOpen] = useState(false);
 
-  const [user, setUser] = useState({
-    name: "Loading...",
-    role: "",
-    initials: "...",
-  });
+  const [isOpen, setIsOpen] = useState(false);
 
   const containerRef = useRef(null);
   const triggerRef = useRef(null);
   const itemRefs = useRef([]);
-
-  /*
-   * Load current user
-   */
-  useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const response = await api.getUserById(
-          CURRENT_USER_ID
-        );
-
-        setUser({
-          name: response.data?.name || "User",
-          role: response.data?.role || "",
-          initials:
-            response.data?.initials || "?",
-        });
-      } catch (error) {
-        console.error(
-          "Profile menu API error:",
-          error
-        );
-
-        setUser({
-          name: "User",
-          role: "",
-          initials: "?",
-        });
-      }
-    };
-
-    loadUser();
-  }, []);
 
   const closeMenu = () => {
     setIsOpen(false);
@@ -82,25 +43,25 @@ export default function ProfileMenu() {
   };
 
   const handleItemSelect = (item) => {
-  if (item.id === "profile") {
-    navigate("/settings?section=profile");
-    closeMenu();
-    return;
-  }
+    if (item.id === "profile") {
+      navigate("/settings?section=profile");
+      closeMenu();
+      return;
+    }
 
-  if (item.id === "account-settings") {
-    navigate("/settings?section=account");
-    closeMenu();
-    return;
-  }
+    if (item.id === "account-settings") {
+      navigate("/settings?section=account");
+      closeMenu();
+      return;
+    }
 
-  if (item.id === "sign-out") {
-    closeMenu();
-    return;
-  }
+    if (item.id === "sign-out") {
+      closeMenu();
+      return;
+    }
 
-  closeMenu();
-};
+    closeMenu();
+  };
 
   /*
    * Close on outside click.
@@ -109,11 +70,7 @@ export default function ProfileMenu() {
     if (!isOpen) return;
 
     const handlePointerDown = (event) => {
-      if (
-        !containerRef.current?.contains(
-          event.target
-        )
-      ) {
+      if (!containerRef.current?.contains(event.target)) {
         setIsOpen(false);
       }
     };
@@ -193,6 +150,17 @@ export default function ProfileMenu() {
     }
   }, [isOpen]);
 
+  const displayInitials = loading
+    ? "..."
+    : user?.initials || "?";
+
+  const displayName = loading
+    ? "Loading..."
+    : user?.name || "User";
+
+  const displayRole =
+    user?.role || "No role specified";
+
   return (
     <div
       ref={containerRef}
@@ -211,11 +179,11 @@ export default function ProfileMenu() {
         className="flex items-center gap-2 rounded-lg py-1 pl-1 pr-2 hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
       >
         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-200 text-xs font-semibold text-slate-700">
-          {user.initials}
+          {displayInitials}
         </div>
 
         <span className="hidden text-sm font-medium text-slate-700 sm:inline">
-          {user.name}
+          {displayName}
         </span>
 
         <ChevronDown
@@ -238,16 +206,16 @@ export default function ProfileMenu() {
           {/* User information */}
           <div className="flex items-center gap-3 px-2.5 py-2">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-200 text-xs font-semibold text-slate-700">
-              {user.initials}
+              {displayInitials}
             </div>
 
             <div className="min-w-0 leading-tight">
               <p className="truncate text-sm font-medium text-slate-900">
-                {user.name}
+                {displayName}
               </p>
 
               <p className="truncate text-xs text-slate-500">
-                {user.role || "No role specified"}
+                {displayRole}
               </p>
             </div>
           </div>
@@ -265,8 +233,7 @@ export default function ProfileMenu() {
               <button
                 key={item.id}
                 ref={(element) => {
-                  itemRefs.current[index] =
-                    element;
+                  itemRefs.current[index] = element;
                 }}
                 type="button"
                 role="menuitem"

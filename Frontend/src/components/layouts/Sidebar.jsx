@@ -5,10 +5,11 @@ import {
 } from "lucide-react";
 
 import {
-  CURRENT_USER,
   NAV_ITEMS,
   QUICK_ACTIONS,
 } from "../../data/mockData";
+
+import { useCurrentUser } from "../../context/CurrentUserContext";
 
 /**
  * Sidebar
@@ -21,6 +22,9 @@ export default function Sidebar({
   isOpen = false,
   onClose = () => {},
 }) {
+  
+  const { user, loading } = useCurrentUser();
+
   return (
     <>
       {/* Mobile backdrop */}
@@ -152,16 +156,18 @@ export default function Sidebar({
         <div className="border-t border-white/10 p-3">
           <div className="flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-white/10">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-400/20 text-xs font-semibold text-indigo-200">
-              {CURRENT_USER.initials}
+              {loading ? "..." : user?.initials || "?"}
             </div>
 
             <div className="min-w-0 leading-tight">
               <p className="truncate text-sm font-medium text-white">
-                {CURRENT_USER.name}
+                {loading
+                ? "Loading..."
+                : user?.name || "User"}
               </p>
 
               <p className="truncate text-xs text-slate-400">
-                {CURRENT_USER.role}
+                {user?.role || "No role specified"}
               </p>
             </div>
 
