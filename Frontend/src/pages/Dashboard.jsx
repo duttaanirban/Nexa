@@ -156,31 +156,50 @@ export default function Dashboard({
    * Team workload
    */
   const teamWorkload = useMemo(() => {
-    return users.map((user) => {
-      const assignedTasks = tasks.filter(
-        (task) => task.assignee === user.initials
-      );
+  return users.map((user) => {
+    const assignedTasks = tasks.filter(
+      (task) => task.assignee === user.initials
+    );
 
-      const activeTasks = assignedTasks.filter(
-        (task) => task.status !== "done"
-      ).length;
+    let workload = 0;
 
-      const workload =
-        assignedTasks.length === 0
-          ? 0
-          : Math.min(
-              100,
-              Math.round(
-                (activeTasks / assignedTasks.length) * 100
-              )
-            );
+    assignedTasks.forEach((task) => {
+      // Completed tasks do not contribute to current workload.
+      if (task.status === "done") {
+        return;
+      }
 
-      return {
-        ...user,
-        workload,
-      };
+      // Every active task contributes 20%.
+      workload += 20;
+
+      // High-priority tasks add extra pressure.
+      if (task.priority === "High") {
+        workload += 10;
+      }
+
+      // Blocked tasks need additional attention.
+      if (task.status === "blocked") {
+        workload += 15;
+      }
+
+      // Overdue tasks need additional attention.
+      if (task.due === "Overdue") {
+        workload += 15;
+      }
     });
-  }, [users, tasks]);
+
+    // Keep workload between 0 and 100.
+    workload = Math.min(
+      100,
+      Math.max(0, workload)
+    );
+
+    return {
+      ...user,
+      workload,
+    };
+  });
+}, [users, tasks]);
 
   /*
    * Get the selected date range.
