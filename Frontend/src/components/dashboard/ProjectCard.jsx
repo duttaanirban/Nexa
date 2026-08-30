@@ -73,7 +73,7 @@ export default function ProjectCard({
 
   return (
     <div
-      className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md sm:p-5"
+      className="cursor-pointer rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md sm:p-5"
       role="link"
       tabIndex={0}
       aria-label={`View ${name} project details`}

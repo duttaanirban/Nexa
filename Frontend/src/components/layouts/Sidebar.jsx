@@ -43,7 +43,7 @@ export default function Sidebar({
         aria-label="Sidebar"
       >
         {/* Logo / header */}
-        <div className="flex h-[72px] shrink-0 items-center justify-between px-5">
+        <div className="flex h-18 shrink-0 items-center justify-between px-5">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600 text-base font-semibold text-white shadow-lg shadow-indigo-950/30">
               P

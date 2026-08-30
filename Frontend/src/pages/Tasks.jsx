@@ -30,6 +30,8 @@ export default function Tasks({ filters = [] }) {
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
+  const [projectFilter, setProjectFilter] = useState("all");
+  const [assigneeFilter, setAssigneeFilter] = useState("all");
 
   const [isLoading, setIsLoading] = useState(true);
   const [apiError, setApiError] = useState(null);
@@ -171,6 +173,14 @@ export default function Tasks({ filters = [] }) {
         priorityFilter === "all" ||
         task.priority === priorityFilter;
 
+      const matchesProject =
+        projectFilter === "all" ||
+        task.project === projectFilter;
+
+      const matchesAssignee =
+        assigneeFilter === "all" ||
+        task.assignee === assigneeFilter;
+
       const matchesQuery =
         normalizedQuery === "" ||
         task.id
@@ -189,6 +199,8 @@ export default function Tasks({ filters = [] }) {
       return (
         matchesStatus &&
         matchesPriority &&
+        matchesProject &&
+        matchesAssignee &&
         matchesQuery
       );
     });
@@ -196,18 +208,24 @@ export default function Tasks({ filters = [] }) {
     tasks,
     statusFilter,
     priorityFilter,
+    projectFilter,
+    assigneeFilter,
     normalizedQuery,
   ]);
 
   const hasActiveFilters =
     normalizedQuery !== "" ||
     statusFilter !== "all" ||
-    priorityFilter !== "all";
+    priorityFilter !== "all" ||
+    projectFilter !== "all" ||
+    assigneeFilter !== "all";
 
   const clearFilters = () => {
     setQuery("");
     setStatusFilter("all");
     setPriorityFilter("all");
+    setProjectFilter("all");
+    setAssigneeFilter("all");
   };
 
   /* ------------------------------------------------------------
@@ -568,6 +586,47 @@ export default function Tasks({ filters = [] }) {
             );
           })}
         </div>
+
+        {/* Project + assignee filters */}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <select
+            value={projectFilter}
+            onChange={(event) => setProjectFilter(event.target.value)}
+            aria-label="Filter tasks by project"
+            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20"
+          >
+            <option value="all">All projects</option>
+            {projects.map((project) => (
+              <option key={project.id} value={project.name}>
+                {project.name}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={assigneeFilter}
+            onChange={(event) => setAssigneeFilter(event.target.value)}
+            aria-label="Filter tasks by assignee"
+            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20"
+          >
+            <option value="all">All assignees</option>
+            {users.map((user) => (
+              <option key={user.id} value={user.initials}>
+                {user.name} ({user.initials})
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {hasActiveFilters && (
+          <button
+            type="button"
+            onClick={clearFilters}
+            className="inline-flex w-fit items-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900"
+          >
+            Clear all filters
+          </button>
+        )}
       </section>
 
       {/* Results */}
@@ -579,7 +638,9 @@ export default function Tasks({ filters = [] }) {
           className="text-sm text-slate-500"
           aria-live="polite"
         >
-          {resultLabel}
+          {hasActiveFilters
+            ? `${resultLabel} of ${tasks.length} total`
+            : resultLabel}
         </p>
 
         {resultCount === 0 ? (
@@ -628,7 +689,7 @@ export default function Tasks({ filters = [] }) {
       {/* Create / Edit modal */}
       {isFormOpen && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/40 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4"
           role="presentation"
           onMouseDown={(event) => {
             if (

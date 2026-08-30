@@ -3,7 +3,6 @@ import { Link, useParams } from "react-router-dom";
 import {
   ArrowLeft,
   CheckCircle2,
-  AlertTriangle,
   XCircle,
   Circle,
   Info,

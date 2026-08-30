@@ -11,7 +11,7 @@ export default function Toast({
 
   return (
     <div
-      className="fixed bottom-5 right-5 z-[100] flex w-[calc(100%-2rem)] max-w-sm items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-xl"
+      className="fixed bottom-5 right-5 z-50 flex w-[calc(100%-2rem)] max-w-sm items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-xl"
       role="status"
       aria-live="polite"
     >

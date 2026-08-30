@@ -68,31 +68,34 @@ export default function Projects() {
     });
   };
 
-  const loadProjects = () => {
+  const loadProjects = async () => {
     setIsLoading(true);
 
-    api.getProjects()
-      .then((response) => {
-        setProjects(
-          Array.isArray(response.data)
-            ? response.data
-            : []
-        );
-      })
-      .catch((error) => {
-        console.error("Projects API error:", error);
+    try {
+      const response = await api.getProjects();
 
-        setActionError(
-          error.message || "Failed to load projects."
-        );
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
+      setProjects(
+        Array.isArray(response.data)
+          ? response.data
+          : []
+      );
+    } catch (error) {
+      console.error("Projects API error:", error);
+
+      setActionError(
+        error.message || "Failed to load projects."
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
-    loadProjects();
+    const timer = window.setTimeout(() => {
+      void loadProjects();
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, []);
 
   const normalizedQuery = query.trim().toLowerCase();
@@ -602,7 +605,7 @@ export default function Projects() {
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="inline-flex min-w-[110px] items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="inline-flex min-w-27.5 items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {isSaving
                     ? editingProject
