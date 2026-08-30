@@ -23,6 +23,7 @@ const EMPTY_FORM = {
 
 export default function Team() {
   const [members, setMembers] = useState([]);
+  const [tasks, setTasks] = useState([]);
   const [query, setQuery] = useState("");
 
   const [isLoading, setIsLoading] = useState(true);
@@ -73,23 +74,32 @@ export default function Team() {
      Load members
   ------------------------------------------------------------ */
 
-  const loadMembers = async () => {
+  const loadTeamData = async () => {
     try {
       setApiError(null);
 
-      const response = await api.getUsers();
+      const [usersResponse, tasksResponse] = await Promise.all([
+        api.getUsers(),
+        api.getTasks(),
+      ]);
 
       setMembers(
-        Array.isArray(response.data)
-          ? response.data
+        Array.isArray(usersResponse.data)
+          ? usersResponse.data
+          : []
+      );
+
+      setTasks(
+        Array.isArray(tasksResponse.data)
+          ? tasksResponse.data
           : []
       );
     } catch (error) {
-      console.error("Users API error:", error);
+      console.error("Team API error:", error);
 
       setApiError(
         error?.message ||
-          "We couldn't load the team members."
+          "We couldn't load the team data."
       );
     }
   };
@@ -98,7 +108,7 @@ export default function Team() {
     const loadInitialData = async () => {
       setIsLoading(true);
 
-      await loadMembers();
+      await loadTeamData();
 
       setIsLoading(false);
     };
@@ -222,7 +232,7 @@ export default function Team() {
         showToast("Team member created successfully.");
       }
 
-      await loadMembers();
+      await loadTeamData();
 
       setIsFormOpen(false);
       setEditingMember(null);
@@ -291,6 +301,46 @@ export default function Team() {
     } finally {
       setIsDeleting(false);
     }
+  };
+
+  /* ------------------------------------------------------------
+     Workload
+  ------------------------------------------------------------ */
+
+  const getMemberStats = (member) => {
+    const assignedTasks = tasks.filter(
+      (task) => task.assignee === member.initials
+    );
+
+    const completedTasks = assignedTasks.filter(
+      (task) => task.status === "done"
+    ).length;
+
+    const activeTasks = assignedTasks.filter(
+      (task) => task.status !== "done"
+    ).length;
+
+    const blockedTasks = assignedTasks.filter(
+      (task) => task.status === "blocked"
+    ).length;
+
+    const workload =
+      assignedTasks.length === 0
+        ? 0
+        : Math.min(
+            100,
+            Math.round(
+              (activeTasks / assignedTasks.length) * 100
+            )
+          );
+
+    return {
+      assignedTasks: assignedTasks.length,
+      completedTasks,
+      activeTasks,
+      blockedTasks,
+      workload,
+    };
   };
 
   /* ------------------------------------------------------------
@@ -470,6 +520,68 @@ export default function Team() {
                         {member.email}
                       </p>
                     )}
+
+                    {(() => {
+                      const stats = getMemberStats(member);
+
+                      return (
+                        <div className="mt-4">
+                          <div className="flex items-center justify-between gap-3 text-xs">
+                            <span className="text-slate-500">
+                              Workload
+                            </span>
+                            <span className="font-medium text-slate-700">
+                              {stats.workload}%
+                            </span>
+                          </div>
+
+                          <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+                            <div
+                              className="h-full rounded-full bg-indigo-500 transition-all"
+                              style={{
+                                width: `${stats.workload}%`,
+                              }}
+                            />
+                          </div>
+
+                          <div className="mt-3 grid grid-cols-3 gap-2">
+                            <div className="rounded-lg bg-slate-50 px-2 py-2">
+                              <p className="text-[11px] text-slate-500">
+                                Assigned
+                              </p>
+                              <p className="mt-0.5 text-sm font-semibold text-slate-900">
+                                {stats.assignedTasks}
+                              </p>
+                            </div>
+
+                            <div className="rounded-lg bg-slate-50 px-2 py-2">
+                              <p className="text-[11px] text-slate-500">
+                                Active
+                              </p>
+                              <p className="mt-0.5 text-sm font-semibold text-slate-900">
+                                {stats.activeTasks}
+                              </p>
+                            </div>
+
+                            <div className="rounded-lg bg-slate-50 px-2 py-2">
+                              <p className="text-[11px] text-slate-500">
+                                Done
+                              </p>
+                              <p className="mt-0.5 text-sm font-semibold text-slate-900">
+                                {stats.completedTasks}
+                              </p>
+                            </div>
+                          </div>
+
+                          {stats.blockedTasks > 0 && (
+                            <p className="mt-2 text-xs font-medium text-red-600">
+                              {stats.blockedTasks} blocked task
+                              {stats.blockedTasks === 1 ? "" : "s"}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
 
                   {/* Action menu */}
