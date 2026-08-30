@@ -93,115 +93,6 @@ export default function Dashboard({
   }, []);
 
   /*
-   * Dashboard statistics
-   */
-  const stats = useMemo(() => {
-    const activeProjects = projects.filter(
-      (project) =>
-        project.status === "On track" ||
-        project.status === "In progress"
-    ).length;
-
-    const completedTasks = tasks.filter(
-      (task) => task.status === "done"
-    ).length;
-
-    const inProgressTasks = tasks.filter(
-      (task) => task.status === "in-progress"
-    ).length;
-
-    const overdueTasks = tasks.filter(
-      (task) => task.due === "Overdue"
-    ).length;
-
-    return [
-      {
-        id: "active-projects",
-        label: "Active projects",
-        value: String(activeProjects).padStart(2, "0"),
-        delta: "from current projects",
-        trend: "up",
-      },
-      {
-        id: "completed",
-        label: "Tasks completed",
-        value: String(completedTasks),
-        delta: "currently completed",
-        trend: "up",
-      },
-      {
-        id: "in-progress",
-        label: "In progress",
-        value: String(inProgressTasks),
-        delta: "currently active",
-        trend: "neutral",
-      },
-      {
-        id: "overdue",
-        label: "Overdue",
-        value: String(overdueTasks).padStart(2, "0"),
-        delta:
-          overdueTasks > 0
-            ? "needs attention"
-            : "none",
-        trend:
-          overdueTasks > 0
-            ? "down"
-            : "neutral",
-      },
-    ];
-  }, [projects, tasks]);
-
-  /*
-   * Team workload
-   */
-  const teamWorkload = useMemo(() => {
-  return users.map((user) => {
-    const assignedTasks = tasks.filter(
-      (task) => task.assignee === user.initials
-    );
-
-    let workload = 0;
-
-    assignedTasks.forEach((task) => {
-      // Completed tasks do not contribute to current workload.
-      if (task.status === "done") {
-        return;
-      }
-
-      // Every active task contributes 20%.
-      workload += 20;
-
-      // High-priority tasks add extra pressure.
-      if (task.priority === "High") {
-        workload += 10;
-      }
-
-      // Blocked tasks need additional attention.
-      if (task.status === "blocked") {
-        workload += 15;
-      }
-
-      // Overdue tasks need additional attention.
-      if (task.due === "Overdue") {
-        workload += 15;
-      }
-    });
-
-    // Keep workload between 0 and 100.
-    workload = Math.min(
-      100,
-      Math.max(0, workload)
-    );
-
-    return {
-      ...user,
-      workload,
-    };
-  });
-}, [users, tasks]);
-
-  /*
    * Get the selected date range.
    */
   const getDateRange = (range) => {
@@ -259,6 +150,137 @@ export default function Dashboard({
       end: endOfWeek,
     };
   };
+
+
+  /*
+   * Dashboard statistics
+   */
+  const stats = useMemo(() => {
+    const { start, end } = getDateRange(dateRange);
+
+    const startTime = new Date(start);
+    startTime.setHours(0, 0, 0, 0);
+
+    const endTime = new Date(end);
+    endTime.setHours(23, 59, 59, 999);
+
+    const tasksInRange = tasks.filter((task) => {
+      if (!task.createdAt) return false;
+
+      const createdAt = new Date(task.createdAt);
+
+      return (
+        !Number.isNaN(createdAt.getTime()) &&
+        createdAt >= startTime &&
+        createdAt <= endTime
+      );
+    });
+
+    const activeProjects = projects.filter(
+      (project) =>
+        project.status === "On track" ||
+        project.status === "In progress"
+    ).length;
+
+    const completedTasks = tasksInRange.filter(
+      (task) => task.status === "done"
+    ).length;
+
+    const inProgressTasks = tasksInRange.filter(
+      (task) => task.status === "in-progress"
+    ).length;
+
+    const overdueTasks = tasksInRange.filter(
+      (task) => task.due === "Overdue"
+    ).length;
+
+    return [
+      {
+        id: "active-projects",
+        label: "Active projects",
+        value: String(activeProjects).padStart(2, "0"),
+        delta: "from current projects",
+        trend: "up",
+      },
+      {
+        id: "completed",
+        label: "Tasks completed",
+        value: String(completedTasks),
+        delta: "currently completed",
+        trend: "up",
+      },
+      {
+        id: "in-progress",
+        label: "In progress",
+        value: String(inProgressTasks),
+        delta: "currently active",
+        trend: "neutral",
+      },
+      {
+        id: "overdue",
+        label: "Overdue",
+        value: String(overdueTasks).padStart(2, "0"),
+        delta:
+          overdueTasks > 0
+            ? "needs attention"
+            : "none",
+        trend:
+          overdueTasks > 0
+            ? "down"
+            : "neutral",
+      },
+    ];
+  }, [projects, tasks, dateRange]);
+
+  /*
+   * Team workload
+   */
+  const teamWorkload = useMemo(() => {
+  return users.map((user) => {
+    const assignedTasks = tasks.filter(
+      (task) => task.assignee === user.initials
+    );
+
+    let workload = 0;
+
+    assignedTasks.forEach((task) => {
+      // Completed tasks do not contribute to current workload.
+      if (task.status === "done") {
+        return;
+      }
+
+      // Every active task contributes 20%.
+      workload += 20;
+
+      // High-priority tasks add extra pressure.
+      if (task.priority === "High") {
+        workload += 10;
+      }
+
+      // Blocked tasks need additional attention.
+      if (task.status === "blocked") {
+        workload += 15;
+      }
+
+      // Overdue tasks need additional attention.
+      if (task.due === "Overdue") {
+        workload += 15;
+      }
+    });
+
+    // Keep workload between 0 and 100.
+    workload = Math.min(
+      100,
+      Math.max(0, workload)
+    );
+
+    return {
+      ...user,
+      workload,
+    };
+  });
+}, [users, tasks]);
+
 
   /*
    * Generate real productivity chart data from tasks.
@@ -497,7 +519,24 @@ export default function Dashboard({
         />
 
         <ActivitySection
-          activities={activities}
+          activities={activities.filter((activity) => {
+            if (!activity.timestamp) return false;
+
+            const { start, end } = getDateRange(dateRange);
+            const activityTime = new Date(activity.timestamp);
+
+            const startTime = new Date(start);
+            startTime.setHours(0, 0, 0, 0);
+
+            const endTime = new Date(end);
+            endTime.setHours(23, 59, 59, 999);
+
+            return (
+              !Number.isNaN(activityTime.getTime()) &&
+              activityTime >= startTime &&
+              activityTime <= endTime
+            );
+          })}
         />
 
       </div>
@@ -522,7 +561,24 @@ export default function Dashboard({
 
       {/* Tasks */}
       <TaskSection
-        tasks={tasks}
+        tasks={tasks.filter((task) => {
+          if (!task.createdAt) return false;
+
+          const { start, end } = getDateRange(dateRange);
+          const taskTime = new Date(task.createdAt);
+
+          const startTime = new Date(start);
+          startTime.setHours(0, 0, 0, 0);
+
+          const endTime = new Date(end);
+          endTime.setHours(23, 59, 59, 999);
+
+          return (
+            !Number.isNaN(taskTime.getTime()) &&
+            taskTime >= startTime &&
+            taskTime <= endTime
+          );
+        })}
         filters={TASK_FILTERS}
       />
 
