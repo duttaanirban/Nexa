@@ -1,4 +1,5 @@
 const { addActivity } = require("../services/activityService");
+
 const tasks = [
   {
     id: "T-421",
@@ -8,6 +9,7 @@ const tasks = [
     due: "Today",
     priority: "High",
     status: "in-progress",
+    createdAt: "2026-08-24T09:15:00.000Z",
   },
   {
     id: "T-418",
@@ -17,6 +19,7 @@ const tasks = [
     due: "Tomorrow",
     priority: "Medium",
     status: "todo",
+    createdAt: "2026-08-25T10:30:00.000Z",
   },
   {
     id: "T-402",
@@ -26,6 +29,7 @@ const tasks = [
     due: "Overdue",
     priority: "High",
     status: "blocked",
+    createdAt: "2026-08-26T08:45:00.000Z",
   },
   {
     id: "T-397",
@@ -35,6 +39,7 @@ const tasks = [
     due: "Fri",
     priority: "Low",
     status: "review",
+    createdAt: "2026-08-27T11:20:00.000Z",
   },
   {
     id: "T-390",
@@ -44,6 +49,8 @@ const tasks = [
     due: "Mon",
     priority: "Medium",
     status: "done",
+    createdAt: "2026-08-24T07:50:00.000Z",
+    completedAt: "2026-08-28T14:10:00.000Z",
   },
 ];
 
@@ -106,7 +113,14 @@ const createTask = (req, res) => {
     status,
   } = req.body;
 
-  if (!title || !project || !assignee || !due || !priority || !status) {
+  if (
+    !title ||
+    !project ||
+    !assignee ||
+    !due ||
+    !priority ||
+    !status
+  ) {
     return res.status(400).json({
       success: false,
       message:
@@ -122,16 +136,21 @@ const createTask = (req, res) => {
     due,
     priority,
     status,
+    createdAt: new Date().toISOString(),
+    ...(status === "done"
+      ? { completedAt: new Date().toISOString() }
+      : {}),
   };
 
   tasks.push(newTask);
+
   addActivity({
-  type: "task-created",
-  title: "Created new task",
-  description: newTask.title,
-  project: newTask.project,
-  user: newTask.assignee,
-});
+    type: "task-created",
+    title: "Created new task",
+    description: newTask.title,
+    project: newTask.project,
+    user: newTask.assignee,
+  });
 
   res.status(201).json({
     success: true,
@@ -161,7 +180,14 @@ const updateTask = (req, res) => {
     status,
   } = req.body;
 
-  if (!title || !project || !assignee || !due || !priority || !status) {
+  if (
+    !title ||
+    !project ||
+    !assignee ||
+    !due ||
+    !priority ||
+    !status
+  ) {
     return res.status(400).json({
       success: false,
       message:
@@ -169,22 +195,33 @@ const updateTask = (req, res) => {
     });
   }
 
+  const existingTask = tasks[taskIndex];
+
   tasks[taskIndex] = {
-    id: tasks[taskIndex].id,
+    id: existingTask.id,
     title,
     project,
     assignee,
     due,
     priority,
     status,
+    createdAt: existingTask.createdAt,
+    ...(status === "done"
+      ? {
+          completedAt:
+            existingTask.completedAt ||
+            new Date().toISOString(),
+        }
+      : {}),
   };
+
   addActivity({
-  type: "task-updated",
-  title: "Updated task",
-  description: tasks[taskIndex].title,
-  project: tasks[taskIndex].project,
-  user: tasks[taskIndex].assignee,
-});
+    type: "task-updated",
+    title: "Updated task",
+    description: tasks[taskIndex].title,
+    project: tasks[taskIndex].project,
+    user: tasks[taskIndex].assignee,
+  });
 
   res.status(200).json({
     success: true,
@@ -223,19 +260,28 @@ const updateTaskStatus = (req, res) => {
   }
 
   task.status = status;
+
+  if (status === "done" && !task.completedAt) {
+    task.completedAt = new Date().toISOString();
+  }
+
+  if (status !== "done") {
+    delete task.completedAt;
+  }
+
   addActivity({
-  type:
-    status === "done"
-      ? "task-completed"
-      : "task-status-changed",
-  title:
-    status === "done"
-      ? "Completed task"
-      : "Updated task status",
-  description: task.title,
-  project: task.project,
-  user: task.assignee,
-});
+    type:
+      status === "done"
+        ? "task-completed"
+        : "task-status-changed",
+    title:
+      status === "done"
+        ? "Completed task"
+        : "Updated task status",
+    description: task.title,
+    project: task.project,
+    user: task.assignee,
+  });
 
   res.status(200).json({
     success: true,
@@ -257,13 +303,14 @@ const deleteTask = (req, res) => {
   }
 
   const deletedTask = tasks.splice(taskIndex, 1)[0];
+
   addActivity({
-  type: "task-deleted",
-  title: "Deleted task",
-  description: deletedTask.title,
-  project: deletedTask.project,
-  user: deletedTask.assignee,
-});
+    type: "task-deleted",
+    title: "Deleted task",
+    description: deletedTask.title,
+    project: deletedTask.project,
+    user: deletedTask.assignee,
+  });
 
   res.status(200).json({
     success: true,

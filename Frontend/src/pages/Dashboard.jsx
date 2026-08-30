@@ -1,7 +1,6 @@
 import {
   QUICK_ACTIONS,
   TASK_FILTERS,
-  VELOCITY_CHART_DATA,
 } from "../data/mockData";
 
 import { useEffect, useMemo, useState } from "react";
@@ -23,9 +22,9 @@ import TeamWorkload from "../components/dashboard/TeamWorkload";
  *
  * Primary landing page for the Developer Productivity Dashboard.
  *
- * Projects, tasks, and users are loaded from the backend API.
- * Productivity, recent activity, and quick actions currently remain
- * presentation data until corresponding backend endpoints are added.
+ * Projects, tasks, users, and activity are loaded from the backend API.
+ * Productivity chart data is calculated from task createdAt/completedAt
+ * timestamps.
  */
 export default function Dashboard({
   loading = false,
@@ -42,6 +41,9 @@ export default function Dashboard({
   const [isLoading, setIsLoading] = useState(true);
   const [apiError, setApiError] = useState(null);
 
+  /*
+   * Load dashboard data
+   */
   useEffect(() => {
     Promise.all([
       api.getProjects(),
@@ -50,21 +52,37 @@ export default function Dashboard({
       api.getActivity(),
     ])
       .then(
-      ([
-        projectsResponse,
-        tasksResponse,
-        usersResponse,
-        activitiesResponse,
-      ]) => {
-        setProjects(projectsResponse.data);
-        setTasks(tasksResponse.data);
-        setUsers(usersResponse.data);
-        setActivities(
-          Array.isArray(activitiesResponse.data)
-            ? activitiesResponse.data
-            : []
-        );
-      })
+        ([
+          projectsResponse,
+          tasksResponse,
+          usersResponse,
+          activitiesResponse,
+        ]) => {
+          setProjects(
+            Array.isArray(projectsResponse.data)
+              ? projectsResponse.data
+              : []
+          );
+
+          setTasks(
+            Array.isArray(tasksResponse.data)
+              ? tasksResponse.data
+              : []
+          );
+
+          setUsers(
+            Array.isArray(usersResponse.data)
+              ? usersResponse.data
+              : []
+          );
+
+          setActivities(
+            Array.isArray(activitiesResponse.data)
+              ? activitiesResponse.data
+              : []
+          );
+        }
+      )
       .catch((error) => {
         console.error("Dashboard API error:", error);
         setApiError(error);
@@ -74,6 +92,9 @@ export default function Dashboard({
       });
   }, []);
 
+  /*
+   * Dashboard statistics
+   */
   const stats = useMemo(() => {
     const activeProjects = projects.filter(
       (project) =>
@@ -131,6 +152,9 @@ export default function Dashboard({
     ];
   }, [projects, tasks]);
 
+  /*
+   * Team workload
+   */
   const teamWorkload = useMemo(() => {
     return users.map((user) => {
       const assignedTasks = tasks.filter(
@@ -158,60 +182,155 @@ export default function Dashboard({
     });
   }, [users, tasks]);
 
-  if (loading || isLoading) {
-    return <DashboardSkeleton />;
-  }
-
-  if (error || apiError) {
-    const currentError = error || apiError;
-
-    const errorMessage =
-      typeof currentError === "string"
-        ? currentError
-        : currentError?.message ||
-          "We couldn't load the dashboard. Please try again.";
-
-    return <ErrorState message={errorMessage} />;
-  }
-
+  /*
+   * Get the selected date range.
+   */
   const getDateRange = (range) => {
     const today = new Date();
 
+    /*
+     * Normalize the current date to the beginning of the day.
+     */
+    const startOfToday = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate()
+    );
+
     if (range === "Today") {
       return {
-        start: today,
-        end: today,
+        start: startOfToday,
+        end: startOfToday,
       };
     }
 
-    const day = today.getDay();
+    /*
+     * JavaScript:
+     * Sunday = 0
+     * Monday = 1
+     * ...
+     *
+     * Convert it so Monday becomes the start of the week.
+     */
+    const day = startOfToday.getDay();
 
-    const startOfCurrentWeek = new Date(today);
+    const daysFromMonday =
+      day === 0 ? 6 : day - 1;
 
-    startOfCurrentWeek.setDate(
-      today.getDate() - day + 1
+    const startOfWeek = new Date(startOfToday);
+
+    startOfWeek.setDate(
+      startOfToday.getDate() - daysFromMonday
     );
 
     if (range === "Last week") {
-      startOfCurrentWeek.setDate(
-        startOfCurrentWeek.getDate() - 7
+      startOfWeek.setDate(
+        startOfWeek.getDate() - 7
       );
     }
 
-    const end = new Date(startOfCurrentWeek);
+    const endOfWeek = new Date(startOfWeek);
 
-    end.setDate(
-      startOfCurrentWeek.getDate() + 6
+    endOfWeek.setDate(
+      startOfWeek.getDate() + 6
     );
 
     return {
-      start: startOfCurrentWeek,
-      end,
+      start: startOfWeek,
+      end: endOfWeek,
     };
   };
 
+  /*
+   * Generate real productivity chart data from tasks.
+   *
+   * opened = task.createdAt
+   * closed = task.completedAt
+   */
+  const productivityData = useMemo(() => {
+    const { start, end } =
+      getDateRange(dateRange);
+
+    const startTime = new Date(start);
+    startTime.setHours(0, 0, 0, 0);
+
+    const endTime = new Date(end);
+    endTime.setHours(23, 59, 59, 999);
+
+    /*
+     * Create the days that will appear on the chart.
+     */
+    const days = [];
+
+    const currentDay = new Date(startTime);
+
+    while (currentDay <= endTime) {
+      days.push(new Date(currentDay));
+
+      currentDay.setDate(
+        currentDay.getDate() + 1
+      );
+    }
+
+    /*
+     * Count created and completed tasks for each day.
+     */
+    return days.map((day) => {
+      const dayStart = new Date(day);
+      dayStart.setHours(0, 0, 0, 0);
+
+      const dayEnd = new Date(day);
+      dayEnd.setHours(23, 59, 59, 999);
+
+      const opened = tasks.filter((task) => {
+        if (!task.createdAt) return false;
+
+        const createdAt = new Date(
+          task.createdAt
+        );
+
+        return (
+          !Number.isNaN(createdAt.getTime()) &&
+          createdAt >= dayStart &&
+          createdAt <= dayEnd
+        );
+      }).length;
+
+      const closed = tasks.filter((task) => {
+        if (!task.completedAt) return false;
+
+        const completedAt = new Date(
+          task.completedAt
+        );
+
+        return (
+          !Number.isNaN(completedAt.getTime()) &&
+          completedAt >= dayStart &&
+          completedAt <= dayEnd
+        );
+      }).length;
+
+      return {
+        day:
+          dateRange === "Today"
+            ? day.toLocaleDateString("en-US", {
+                weekday: "short",
+              })
+            : day.toLocaleDateString("en-US", {
+                weekday: "short",
+              }),
+        opened,
+        closed,
+      };
+    });
+  }, [tasks, dateRange]);
+
+  /*
+   * Format selected date range for the header.
+   */
   const formatDateRange = (range) => {
-    const { start, end } = getDateRange(range);
+    const { start, end } =
+      getDateRange(range);
 
     const format = (date) =>
       date.toLocaleDateString("en-US", {
@@ -229,6 +348,33 @@ export default function Dashboard({
 
   const displayedDateRange =
     formatDateRange(dateRange);
+
+  /*
+   * Loading state
+   */
+  if (loading || isLoading) {
+    return <DashboardSkeleton />;
+  }
+
+  /*
+   * Error state
+   */
+  if (error || apiError) {
+    const currentError =
+      error || apiError;
+
+    const errorMessage =
+      typeof currentError === "string"
+        ? currentError
+        : currentError?.message ||
+          "We couldn't load the dashboard. Please try again.";
+
+    return (
+      <ErrorState
+        message={errorMessage}
+      />
+    );
+  }
 
   return (
     <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-6">
@@ -256,18 +402,26 @@ export default function Dashboard({
           <button
             type="button"
             onClick={() =>
-              setIsDateMenuOpen((open) => !open)
+              setIsDateMenuOpen(
+                (open) => !open
+              )
             }
             aria-haspopup="menu"
-            aria-expanded={isDateMenuOpen}
+            aria-expanded={
+              isDateMenuOpen
+            }
             className="flex w-fit items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
           >
-            <span>{displayedDateRange}</span>
+            <span>
+              {displayedDateRange}
+            </span>
 
             <ChevronDown
               size={16}
               className={`text-slate-400 transition-transform ${
-                isDateMenuOpen ? "rotate-180" : ""
+                isDateMenuOpen
+                  ? "rotate-180"
+                  : ""
               }`}
               aria-hidden="true"
             />
@@ -289,7 +443,9 @@ export default function Dashboard({
                   role="menuitem"
                   onClick={() => {
                     setDateRange(range);
-                    setIsDateMenuOpen(false);
+                    setIsDateMenuOpen(
+                      false
+                    );
                   }}
                   className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm text-slate-700 transition hover:bg-slate-50"
                 >
@@ -318,7 +474,7 @@ export default function Dashboard({
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
 
         <ProductivityChart
-          data={VELOCITY_CHART_DATA}
+          data={productivityData}
         />
 
         <ActivitySection
