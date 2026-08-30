@@ -20,18 +20,6 @@ router.get("/", getUsers);
 // GET /api/users/:id
 router.get("/:id", getUserById);
 
-// POST /api/users
-router.post(
-  "/",
-  validateRequiredFields([
-    "name",
-    "role",
-    "initials",
-    "email",
-  ]),
-  createUser
-);
-
 // PUT /api/users/:id
 router.put(
   "/:id",
@@ -42,6 +30,18 @@ router.put(
     "email",
   ]),
   updateUser
+);
+
+// POST /api/users
+router.post(
+  "/",
+  validateRequiredFields([
+    "name",
+    "role",
+    "initials",
+    "email",
+  ]),
+  createUser
 );
 
 // DELETE /api/users/:id

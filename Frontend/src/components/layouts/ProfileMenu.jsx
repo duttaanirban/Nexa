@@ -1,69 +1,138 @@
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, User, Settings, LogOut } from "lucide-react";
+import {
+  ChevronDown,
+  User,
+  Settings,
+  LogOut,
+} from "lucide-react";
+import { api } from "../../api/api";
+import { useNavigate } from "react-router-dom";
 
-const USER = {
-  name: "Dummy User",
-  role: "Frontend Lead",
-  initials: "DU",
-};
+const CURRENT_USER_ID = "USR-001";
 
 const MENU_ITEMS = [
-  { id: "profile", label: "Profile", icon: User },
-  { id: "account-settings", label: "Account settings", icon: Settings },
-  { id: "sign-out", label: "Sign out", icon: LogOut, destructive: true },
+  {
+    id: "profile",
+    label: "Profile",
+    icon: User,
+  },
+  {
+    id: "account-settings",
+    label: "Account settings",
+    icon: Settings,
+  },
+  {
+    id: "sign-out",
+    label: "Sign out",
+    icon: LogOut,
+    destructive: true,
+  },
 ];
 
-/**
- * ProfileMenu
- *
- * Self-contained trigger + dropdown for the current user. Not a
- * generic dropdown abstraction — the trigger markup, user data, and
- * menu items are specific to this profile menu.
- *
- * State: a single `isOpen` boolean. No other component state.
- *
- * Behavior:
- * - Click the trigger to toggle the menu.
- * - Click a menu item to run its (currently no-op) action and close.
- * - Click outside, press Escape, or select an item closes the menu
- *   and returns focus to the trigger.
- * - ArrowUp/ArrowDown move focus between menu items while open.
- *
- * Usage (inside Navbar.jsx, in place of the existing profile button):
- *   import ProfileMenu from "./ProfileMenu";
- *   <ProfileMenu />
- */
 export default function ProfileMenu() {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
+
+  const [user, setUser] = useState({
+    name: "Loading...",
+    role: "",
+    initials: "...",
+  });
+
   const containerRef = useRef(null);
   const triggerRef = useRef(null);
   const itemRefs = useRef([]);
+
+  /*
+   * Load current user
+   */
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const response = await api.getUserById(
+          CURRENT_USER_ID
+        );
+
+        setUser({
+          name: response.data?.name || "User",
+          role: response.data?.role || "",
+          initials:
+            response.data?.initials || "?",
+        });
+      } catch (error) {
+        console.error(
+          "Profile menu API error:",
+          error
+        );
+
+        setUser({
+          name: "User",
+          role: "",
+          initials: "?",
+        });
+      }
+    };
+
+    loadUser();
+  }, []);
 
   const closeMenu = () => {
     setIsOpen(false);
     triggerRef.current?.focus();
   };
 
-  const handleItemSelect = () => {
-    // Actions are placeholders — wire up real behavior later.
+  const handleItemSelect = (item) => {
+  if (item.id === "profile") {
+    navigate("/settings?section=profile");
     closeMenu();
-  };
+    return;
+  }
 
-  // Close on outside click.
+  if (item.id === "account-settings") {
+    navigate("/settings?section=account");
+    closeMenu();
+    return;
+  }
+
+  if (item.id === "sign-out") {
+    closeMenu();
+    return;
+  }
+
+  closeMenu();
+};
+
+  /*
+   * Close on outside click.
+   */
   useEffect(() => {
     if (!isOpen) return;
 
     const handlePointerDown = (event) => {
-      if (!containerRef.current?.contains(event.target)) {
+      if (
+        !containerRef.current?.contains(
+          event.target
+        )
+      ) {
         setIsOpen(false);
       }
     };
 
-    document.addEventListener("mousedown", handlePointerDown);
-    return () => document.removeEventListener("mousedown", handlePointerDown);
+    document.addEventListener(
+      "mousedown",
+      handlePointerDown
+    );
+
+    return () =>
+      document.removeEventListener(
+        "mousedown",
+        handlePointerDown
+      );
   }, [isOpen]);
 
-  // Close on Escape; arrow-key navigation between items while open.
+  /*
+   * Keyboard navigation.
+   */
   useEffect(() => {
     if (!isOpen) return;
 
@@ -74,27 +143,50 @@ export default function ProfileMenu() {
         return;
       }
 
-      if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      if (
+        event.key === "ArrowDown" ||
+        event.key === "ArrowUp"
+      ) {
         event.preventDefault();
-        const items = itemRefs.current.filter(Boolean);
+
+        const items =
+          itemRefs.current.filter(Boolean);
+
         if (items.length === 0) return;
 
-        const currentIndex = items.indexOf(document.activeElement);
-        const direction = event.key === "ArrowDown" ? 1 : -1;
+        const currentIndex =
+          items.indexOf(document.activeElement);
+
+        const direction =
+          event.key === "ArrowDown" ? 1 : -1;
+
         const nextIndex =
           currentIndex === -1
             ? 0
-            : (currentIndex + direction + items.length) % items.length;
+            : (currentIndex +
+                direction +
+                items.length) %
+              items.length;
 
         items[nextIndex].focus();
       }
     };
 
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
+    document.addEventListener(
+      "keydown",
+      handleKeyDown
+    );
+
+    return () =>
+      document.removeEventListener(
+        "keydown",
+        handleKeyDown
+      );
   }, [isOpen]);
 
-  // Move focus into the menu when it opens.
+  /*
+   * Move focus into menu when opened.
+   */
   useEffect(() => {
     if (isOpen) {
       itemRefs.current[0]?.focus();
@@ -102,22 +194,30 @@ export default function ProfileMenu() {
   }, [isOpen]);
 
   return (
-    <div ref={containerRef} className="relative">
+    <div
+      ref={containerRef}
+      className="relative"
+    >
+      {/* Trigger */}
       <button
         ref={triggerRef}
         type="button"
-        onClick={() => setIsOpen((open) => !open)}
+        onClick={() =>
+          setIsOpen((open) => !open)
+        }
         aria-haspopup="menu"
         aria-expanded={isOpen}
         aria-label="Open account menu"
         className="flex items-center gap-2 rounded-lg py-1 pl-1 pr-2 hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
       >
         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-200 text-xs font-semibold text-slate-700">
-          {USER.initials}
+          {user.initials}
         </div>
+
         <span className="hidden text-sm font-medium text-slate-700 sm:inline">
-          {USER.name}
+          {user.name}
         </span>
+
         <ChevronDown
           size={14}
           className={`hidden text-slate-400 transition-transform sm:block ${
@@ -127,6 +227,7 @@ export default function ProfileMenu() {
         />
       </button>
 
+      {/* Dropdown */}
       {isOpen && (
         <div
           role="menu"
@@ -134,29 +235,44 @@ export default function ProfileMenu() {
           aria-label="Account menu"
           className="absolute right-0 z-50 mt-2 w-56 origin-top-right rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg"
         >
+          {/* User information */}
           <div className="flex items-center gap-3 px-2.5 py-2">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-200 text-xs font-semibold text-slate-700">
-              {USER.initials}
+              {user.initials}
             </div>
+
             <div className="min-w-0 leading-tight">
               <p className="truncate text-sm font-medium text-slate-900">
-                {USER.name}
+                {user.name}
               </p>
-              <p className="truncate text-xs text-slate-500">{USER.role}</p>
+
+              <p className="truncate text-xs text-slate-500">
+                {user.role || "No role specified"}
+              </p>
             </div>
           </div>
 
-          <div className="my-1 h-px bg-slate-100" role="separator" />
+          <div
+            className="my-1 h-px bg-slate-100"
+            role="separator"
+          />
 
+          {/* Menu items */}
           {MENU_ITEMS.map((item, index) => {
             const Icon = item.icon;
+
             return (
               <button
                 key={item.id}
-                ref={(el) => (itemRefs.current[index] = el)}
+                ref={(element) => {
+                  itemRefs.current[index] =
+                    element;
+                }}
                 type="button"
                 role="menuitem"
-                onClick={handleItemSelect}
+                onClick={() =>
+                  handleItemSelect(item)
+                }
                 className={[
                   "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm font-medium transition-colors",
                   "focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2",
@@ -165,7 +281,11 @@ export default function ProfileMenu() {
                     : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
                 ].join(" ")}
               >
-                <Icon size={16} aria-hidden="true" />
+                <Icon
+                  size={16}
+                  aria-hidden="true"
+                />
+
                 {item.label}
               </button>
             );

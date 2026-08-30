@@ -98,6 +98,9 @@ const updateUser = (req, res) => {
     role,
     initials,
     email,
+    department = "",
+    phone = "",
+    bio = "",
   } = req.body;
 
   if (!name || !role || !initials || !email) {
@@ -109,11 +112,14 @@ const updateUser = (req, res) => {
   }
 
   users[userIndex] = {
-    id: users[userIndex].id,
+    ...users[userIndex],
     name,
     role,
     initials,
     email,
+    department,
+    phone,
+    bio,
   };
 
   res.status(200).json({
