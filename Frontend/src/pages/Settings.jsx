@@ -20,6 +20,12 @@ export default function Settings() {
   const [bio, setBio] = useState("");
   const [initials, setInitials] = useState("");
 
+  const {
+    user: currentUser,
+    loading: currentUserLoading,
+    updateCurrentUser,
+  } = useCurrentUser();
+
   const profileLoading = currentUserLoading;
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileError, setProfileError] = useState(null);
@@ -42,10 +48,6 @@ export default function Settings() {
   const section = searchParams.get("section");
   const profileSectionRef = useRef(null);
   const accountSectionRef = useRef(null);
-
-  const { user: currentUser,
-  loading: currentUserLoading,
-  updateCurrentUser, } = useCurrentUser();
 
   /*
    * Load current profile

@@ -87,6 +87,20 @@ export const api = {
   getActivity: () =>
     request("/activity"),
 
+  // Notifications
+  getNotifications: () =>
+  request("/notifications"),
+
+  markNotificationAsRead: (id) =>
+  request(`/notifications/${id}/read`, {
+    method: "PATCH",
+  }),
+
+  markAllNotificationsAsRead: () =>
+  request("/notifications/read-all", {
+    method: "PATCH",
+  }),
+
   // Team
   createUser: (user) =>
   request("/users", {

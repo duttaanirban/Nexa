@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Activity } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/authContext";
 
 export default function Auth() {
   const [mode, setMode] = useState("login");
