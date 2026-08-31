@@ -1,15 +1,116 @@
 import { useState } from "react";
 import { Activity } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 export default function Auth() {
   const [mode, setMode] = useState("login");
 
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
+
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const navigate = useNavigate();
+
+  const { login, register } = useAuth();
+
   const isLogin = mode === "login";
+
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+
+    setFormData((current) => ({
+      ...current,
+      [name]: value,
+    }));
+
+    if (error) {
+      setError("");
+    }
+  };
+
+  const switchMode = (nextMode) => {
+    setMode(nextMode);
+    setError("");
+
+    setFormData({
+      name: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    });
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    setError("");
+
+    if (!formData.email || !formData.password) {
+      setError("Email and password are required.");
+      return;
+    }
+
+    if (!isLogin) {
+      if (!formData.name.trim()) {
+        setError("Please enter your full name.");
+        return;
+      }
+
+      if (formData.password.length < 8) {
+        setError(
+          "Password must be at least 8 characters."
+        );
+        return;
+      }
+
+      if (
+        formData.password !==
+        formData.confirmPassword
+      ) {
+        setError("Passwords do not match.");
+        return;
+      }
+    }
+
+    try {
+      setSubmitting(true);
+
+      if (isLogin) {
+        await login(
+          formData.email,
+          formData.password
+        );
+      } else {
+        await register(
+          formData.name,
+          formData.email,
+          formData.password,
+          formData.confirmPassword
+        );
+      }
+
+      navigate("/", { replace: true });
+    } catch (error) {
+      setError(
+        error?.message ||
+          "Something went wrong. Please try again."
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-slate-950 p-4 sm:p-6">
       <div className="mx-auto flex min-h-[calc(100vh-2rem)] max-w-6xl overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl sm:min-h-[calc(100vh-3rem)]">
-        
+
         {/* Left branding panel */}
         <section className="hidden w-1/2 flex-col justify-between bg-indigo-600 p-10 lg:flex">
           <div>
@@ -29,12 +130,11 @@ export default function Auth() {
               </h1>
 
               <p className="mt-4 text-lg leading-7 text-indigo-100">
-                Track projects, tasks and team velocity in
-                one calm workspace.
+                Track projects, tasks and team velocity
+                in one calm workspace.
               </p>
             </div>
 
-            {/* Velocity card */}
             <div className="mt-10 rounded-2xl border border-white/20 bg-white/10 p-5 backdrop-blur-sm">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-white">
@@ -47,42 +147,48 @@ export default function Auth() {
               </div>
 
               <div className="mt-6 flex h-20 items-end justify-between gap-2">
-                {[32, 48, 68, 42, 56].map((height, index) => (
-                  <div
-                    key={index}
-                    className={`w-full rounded-t ${
-                      index === 2
-                        ? "bg-white"
-                        : "bg-indigo-300/70"
-                    }`}
-                    style={{ height: `${height}px` }}
-                  />
-                ))}
+                {[32, 48, 68, 42, 56].map(
+                  (height, index) => (
+                    <div
+                      key={index}
+                      className={`w-full rounded-t ${
+                        index === 2
+                          ? "bg-white"
+                          : "bg-indigo-300/70"
+                      }`}
+                      style={{
+                        height: `${height}px`,
+                      }}
+                    />
+                  )
+                )}
               </div>
 
               <div className="mt-5 flex -space-x-2">
-                {["MK", "AK", "RS"].map((initials) => (
-                  <div
-                    key={initials}
-                    className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-indigo-600 bg-white text-[11px] font-semibold text-indigo-600"
-                  >
-                    {initials}
-                  </div>
-                ))}
+                {["MK", "AK", "RS"].map(
+                  (initials) => (
+                    <div
+                      key={initials}
+                      className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-indigo-600 bg-white text-[11px] font-semibold text-indigo-600"
+                    >
+                      {initials}
+                    </div>
+                  )
+                )}
               </div>
             </div>
           </div>
 
           <p className="text-sm text-indigo-100">
-            Trusted by product teams shipping every week.
+            Trusted by product teams shipping every
+            week.
           </p>
         </section>
 
         {/* Right authentication panel */}
         <section className="flex w-full flex-col justify-center bg-slate-900 px-6 py-10 sm:px-10 lg:w-1/2">
-          
           <div className="mx-auto w-full max-w-md">
-            
+
             {/* Mobile logo */}
             <div className="mb-8 flex items-center gap-3 lg:hidden">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600 text-white">
@@ -98,7 +204,7 @@ export default function Auth() {
             <div className="grid grid-cols-2 rounded-xl bg-slate-950 p-1">
               <button
                 type="button"
-                onClick={() => setMode("login")}
+                onClick={() => switchMode("login")}
                 className={`rounded-lg px-4 py-3 text-sm font-semibold transition ${
                   isLogin
                     ? "bg-slate-800 text-white shadow-sm"
@@ -110,7 +216,9 @@ export default function Auth() {
 
               <button
                 type="button"
-                onClick={() => setMode("register")}
+                onClick={() =>
+                  switchMode("register")
+                }
                 className={`rounded-lg px-4 py-3 text-sm font-semibold transition ${
                   !isLogin
                     ? "bg-slate-800 text-white shadow-sm"
@@ -135,27 +243,39 @@ export default function Auth() {
               </p>
             </div>
 
+            {/* Error */}
+            {error && (
+              <div
+                role="alert"
+                className="mt-6 rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300"
+              >
+                {error}
+              </div>
+            )}
+
             <form
               className="mt-8 space-y-5"
-              onSubmit={(event) => {
-                event.preventDefault();
-              }}
+              onSubmit={handleSubmit}
             >
               {!isLogin && (
                 <div>
                   <label
-                    htmlFor="fullName"
+                    htmlFor="name"
                     className="mb-2 block text-sm font-medium text-slate-300"
                   >
                     Full name
                   </label>
 
                   <input
-                    id="fullName"
-                    name="fullName"
+                    id="name"
+                    name="name"
                     type="text"
+                    value={formData.name}
+                    onChange={handleChange}
                     placeholder="Mira Kapoor"
-                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-600 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                    autoComplete="name"
+                    disabled={submitting}
+                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-600 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 disabled:cursor-not-allowed disabled:opacity-60"
                   />
                 </div>
               )}
@@ -172,9 +292,12 @@ export default function Auth() {
                   id="email"
                   name="email"
                   type="email"
+                  value={formData.email}
+                  onChange={handleChange}
                   placeholder="you@company.com"
                   autoComplete="email"
-                  className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-600 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                  disabled={submitting}
+                  className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-600 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 disabled:cursor-not-allowed disabled:opacity-60"
                 />
               </div>
 
@@ -190,13 +313,16 @@ export default function Auth() {
                   id="password"
                   name="password"
                   type="password"
+                  value={formData.password}
+                  onChange={handleChange}
                   placeholder="At least 8 characters"
                   autoComplete={
                     isLogin
                       ? "current-password"
                       : "new-password"
                   }
-                  className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-600 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                  disabled={submitting}
+                  className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-600 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 disabled:cursor-not-allowed disabled:opacity-60"
                 />
               </div>
 
@@ -213,9 +339,12 @@ export default function Auth() {
                     id="confirmPassword"
                     name="confirmPassword"
                     type="password"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
                     placeholder="Re-enter your password"
                     autoComplete="new-password"
-                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-600 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                    disabled={submitting}
+                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-600 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 disabled:cursor-not-allowed disabled:opacity-60"
                   />
                 </div>
               )}
@@ -233,9 +362,16 @@ export default function Auth() {
 
               <button
                 type="submit"
-                className="w-full rounded-lg bg-indigo-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-slate-900"
+                disabled={submitting}
+                className="w-full rounded-lg bg-indigo-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {isLogin ? "Log in" : "Create account"}
+                {submitting
+                  ? isLogin
+                    ? "Logging in..."
+                    : "Creating account..."
+                  : isLogin
+                    ? "Log in"
+                    : "Create account"}
               </button>
             </form>
 
@@ -246,7 +382,9 @@ export default function Auth() {
               <button
                 type="button"
                 onClick={() =>
-                  setMode(isLogin ? "register" : "login")
+                  switchMode(
+                    isLogin ? "register" : "login"
+                  )
                 }
                 className="font-medium text-indigo-400 hover:text-indigo-300"
               >

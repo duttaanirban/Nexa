@@ -8,13 +8,19 @@ import Settings from "./pages/Settings";
 import { TASK_FILTERS } from "./data/mockData";
 import { CurrentUserProvider } from "./context/CurrentUserContext.jsx";
 import Auth from "./pages/Auth";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 export default function App() {
   return (
     <CurrentUserProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/login" element={<Auth />} />
+
+        {/* Public */}
+        <Route path="/login" element={<Auth />} />
+
+        {/* Protected */}
+        <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
             <Route index element={<Dashboard />} />
 
@@ -40,7 +46,9 @@ export default function App() {
               element={<Settings />}
             />
           </Route>
-        </Routes>
+        </Route>
+
+      </Routes>
       </BrowserRouter>
     </CurrentUserProvider>
   );

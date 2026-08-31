@@ -1,3 +1,5 @@
+const bcrypt = require("bcryptjs");
+
 const users = [
   {
     id: "USR-001",
@@ -5,6 +7,7 @@ const users = [
     role: "Frontend Lead",
     initials: "MK",
     email: "mira.kapoor@example.com",
+    Password: "Pulse1234",
   },
   {
     id: "USR-002",
@@ -154,6 +157,7 @@ const deleteUser = (req, res) => {
 };
 
 module.exports = {
+  users,
   getUsers,
   getUserById,
   createUser,

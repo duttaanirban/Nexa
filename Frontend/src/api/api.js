@@ -2,12 +2,13 @@ const API_BASE_URL = "http://localhost:5000/api";
 
 async function request(endpoint, options = {}) {
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    headers: {
-      "Content-Type": "application/json",
-      ...(options.headers || {}),
-    },
-    ...options,
-  });
+  credentials: "include",
+  headers: {
+    "Content-Type": "application/json",
+    ...(options.headers || {}),
+  },
+  ...options,
+});
 
   const data = await response.json();
 
@@ -103,4 +104,26 @@ deleteUser: (id) =>
   request(`/users/${id}`, {
     method: "DELETE",
   }),
+
+  // Authentication
+  register: (user) =>
+    request("/auth/register", {
+      method: "POST",
+      body: JSON.stringify(user),
+    }),
+
+  login: (credentials) =>
+    request("/auth/login", {
+      method: "POST",
+      body: JSON.stringify(credentials),
+    }),
+
+  getCurrentUser: () =>
+    request("/auth/me"),
+
+  logout: () =>
+    request("/auth/logout", {
+      method: "POST",
+    }),
 };
+
