@@ -1,21 +1,22 @@
 import { useCallback, useEffect, useState } from "react";
 import { api } from "../api/api";
-import { useAuth } from "./AuthContext";
-import { CurrentUserContext } from "./currentUserContext";
+import { useAuth } from "./authContext";
+import { CurrentUserContext } from "./CurrentUserContext.js";
 
 export function CurrentUserProvider({ children }) {
   const { user: authenticatedUser, loading: authLoading } =
     useAuth();
 
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const loadUser = useCallback(async () => {
     if (!authenticatedUser?.id) {
       setUser(null);
-      setLoading(false);
       return;
     }
+
+    setLoading(true);
 
     try {
       const response = await api.getUserById(
@@ -41,11 +42,14 @@ export function CurrentUserProvider({ children }) {
 
   useEffect(() => {
     if (authLoading) {
-      setLoading(true);
       return;
     }
 
-    void loadUser();
+    const timer = setTimeout(() => {
+      void loadUser();
+    }, 0);
+
+    return () => clearTimeout(timer);
   }, [authLoading, loadUser]);
 
   const updateCurrentUser = useCallback(

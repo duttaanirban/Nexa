@@ -20,7 +20,7 @@ export default function Settings() {
   const [bio, setBio] = useState("");
   const [initials, setInitials] = useState("");
 
-  const [profileLoading, setProfileLoading] = useState(true);
+  const profileLoading = currentUserLoading;
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileError, setProfileError] = useState(null);
   const [profileSaved, setProfileSaved] = useState(false);
@@ -51,28 +51,29 @@ export default function Settings() {
    * Load current profile
    */
   useEffect(() => {
-  if (currentUserLoading) {
-    setProfileLoading(true);
-    return;
-  }
+    if (currentUserLoading) {
+      return;
+    }
 
-  if (!currentUser) {
-    setProfileLoading(false);
-    setProfileError("Unable to load the current user.");
-    return;
-  }
+    const timer = setTimeout(() => {
+      if (!currentUser) {
+        setProfileError("Unable to load the current user.");
+        return;
+      }
 
-  setProfileLoading(false);
-  setProfileError(null);
+      setProfileError(null);
 
-  setFullName(currentUser.name || "");
-  setRole(currentUser.role || "");
-  setEmail(currentUser.email || "");
-  setDepartment(currentUser.department || "");
-  setPhone(currentUser.phone || "");
-  setBio(currentUser.bio || "");
-  setInitials(currentUser.initials || "");
-}, [currentUser, currentUserLoading]);
+      setFullName(currentUser.name || "");
+      setRole(currentUser.role || "");
+      setEmail(currentUser.email || "");
+      setDepartment(currentUser.department || "");
+      setPhone(currentUser.phone || "");
+      setBio(currentUser.bio || "");
+      setInitials(currentUser.initials || "");
+    }, 0);
+
+    return () => clearTimeout(timer);
+  }, [currentUser, currentUserLoading]);
 
 /*
  * Scroll to requested settings section
@@ -126,7 +127,7 @@ useEffect(() => {
    */
   const handleSaveProfile = async (event) => {
     event.preventDefault();
-    
+
     if (!currentUser?.id) {
       setProfileError("Unable to identify the current user.");
       return;

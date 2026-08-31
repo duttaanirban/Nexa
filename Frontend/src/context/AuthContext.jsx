@@ -1,12 +1,6 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import { useEffect, useState } from "react";
 import { api } from "../api/api";
-
-const AuthContext = createContext(null);
+import { AuthContext } from "./authContext";
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -22,7 +16,7 @@ export function AuthProvider({ children }) {
         const response = await api.getCurrentUser();
 
         setUser(response.data || null);
-      } catch (error) {
+      } catch {
         // 401 simply means the user isn't logged in.
         setUser(null);
       } finally {
@@ -30,7 +24,11 @@ export function AuthProvider({ children }) {
       }
     };
 
-    loadAuthenticatedUser();
+    const timer = setTimeout(() => {
+      void loadAuthenticatedUser();
+    }, 0);
+
+    return () => clearTimeout(timer);
   }, []);
 
   /*
@@ -93,16 +91,4 @@ export function AuthProvider({ children }) {
       {children}
     </AuthContext.Provider>
   );
-}
-
-export function useAuth() {
-  const context = useContext(AuthContext);
-
-  if (!context) {
-    throw new Error(
-      "useAuth must be used inside AuthProvider"
-    );
-  }
-
-  return context;
 }
