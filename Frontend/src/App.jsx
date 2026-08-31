@@ -6,13 +6,15 @@ import Tasks from "./pages/Tasks";
 import Team from "./pages/Team";
 import Settings from "./pages/Settings";
 import { TASK_FILTERS } from "./data/mockData";
-import { CurrentUserProvider } from "./context/CurrentUserContext";
+import { CurrentUserProvider } from "./context/CurrentUserContext.jsx";
+import Auth from "./pages/Auth";
 
 export default function App() {
   return (
     <CurrentUserProvider>
       <BrowserRouter>
         <Routes>
+          <Route path="/login" element={<Auth />} />
           <Route element={<AppLayout />}>
             <Route index element={<Dashboard />} />
 

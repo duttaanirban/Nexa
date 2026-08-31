@@ -5,7 +5,7 @@ import {
   Settings,
   LogOut,
 } from "lucide-react";
-import { useCurrentUser } from "../../context/CurrentUserContext";
+import { useCurrentUser } from "../../context/useCurrentUser";
 import { useNavigate } from "react-router-dom";
 
 const MENU_ITEMS = [

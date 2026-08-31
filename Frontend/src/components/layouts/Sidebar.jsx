@@ -9,7 +9,7 @@ import {
   QUICK_ACTIONS,
 } from "../../data/mockData";
 
-import { useCurrentUser } from "../../context/CurrentUserContext";
+import { useCurrentUser } from "../../context/useCurrentUser";
 
 /**
  * Sidebar

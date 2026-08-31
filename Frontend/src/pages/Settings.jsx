@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { api } from "../api/api";
-import { useCurrentUser } from "../context/CurrentUserContext";
+import { useCurrentUser } from "../context/useCurrentUser";
 
 const DEFAULT_PROJECT_OPTIONS = [
   "No default project",
@@ -48,46 +48,45 @@ export default function Settings() {
   const { updateCurrentUser } = useCurrentUser();
 
   /*
- * Load current profile
- */
-useEffect(() => {
-  const loadProfile = async () => {
-    try {
-      setProfileLoading(true);
-      setProfileError(null);
+   * Load current profile
+   */
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        setProfileLoading(true);
+        setProfileError(null);
 
-      const response = await api.getUserById(
-        CURRENT_USER_ID
-      );
+        const response = await api.getUserById(
+          CURRENT_USER_ID
+        );
 
-      const user =
-        response.data?.data ?? response.data;
-      updateCurrentUser(user);
+        const user = response.data?.data ?? response.data;
+        updateCurrentUser(user);
 
-      setFullName(user.name || "");
-      setRole(user.role || "");
-      setEmail(user.email || "");
-      setDepartment(user.department || "");
-      setPhone(user.phone || "");
-      setBio(user.bio || "");
-      setInitials(user.initials || "");
-    } catch (error) {
-      console.error(
-        "Profile API error:",
-        error
-      );
+        setFullName(user.name || "");
+        setRole(user.role || "");
+        setEmail(user.email || "");
+        setDepartment(user.department || "");
+        setPhone(user.phone || "");
+        setBio(user.bio || "");
+        setInitials(user.initials || "");
+      } catch (error) {
+        console.error(
+          "Profile API error:",
+          error
+        );
 
-      setProfileError(
-        error.message ||
-          "Unable to load profile."
-      );
-    } finally {
-      setProfileLoading(false);
-    }
-  };
+        setProfileError(
+          error.message ||
+            "Unable to load profile."
+        );
+      } finally {
+        setProfileLoading(false);
+      }
+    };
 
-  loadProfile();
-}, []);
+    void loadProfile();
+  }, [updateCurrentUser]);
 
 /*
  * Scroll to requested settings section
