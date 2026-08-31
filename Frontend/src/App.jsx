@@ -9,9 +9,11 @@ import { TASK_FILTERS } from "./data/mockData";
 import { CurrentUserProvider } from "./context/CurrentUserContext.jsx";
 import Auth from "./pages/Auth";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import { AuthProvider } from "./context/AuthContext.jsx";
 
 export default function App() {
   return (
+    <AuthProvider>
     <CurrentUserProvider>
       <BrowserRouter>
         <Routes>
@@ -51,5 +53,6 @@ export default function App() {
       </Routes>
       </BrowserRouter>
     </CurrentUserProvider>
+    </AuthProvider>
   );
 }

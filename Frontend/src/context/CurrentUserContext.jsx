@@ -1,43 +1,65 @@
 import { useCallback, useEffect, useState } from "react";
 import { api } from "../api/api";
+import { useAuth } from "./AuthContext";
 import { CurrentUserContext } from "./currentUserContext";
 
-const CURRENT_USER_ID = "USR-001";
-
 export function CurrentUserProvider({ children }) {
+  const { user: authenticatedUser, loading: authLoading } =
+    useAuth();
+
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const loadUser = useCallback(async () => {
+    if (!authenticatedUser?.id) {
+      setUser(null);
+      setLoading(false);
+      return;
+    }
+
     try {
-      const response = await api.getUserById(CURRENT_USER_ID);
-      const userData = response.data?.data ?? response.data;
+      const response = await api.getUserById(
+        authenticatedUser.id
+      );
+
+      const userData =
+        response.data?.data ?? response.data;
 
       setUser(userData);
     } catch (error) {
-      console.error("Current user API error:", error);
+      console.error(
+        "Current user API error:",
+        error
+      );
+
+      // Fall back to the authenticated user
+      setUser(authenticatedUser);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [authenticatedUser]);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      void loadUser();
-    }, 0);
+    if (authLoading) {
+      setLoading(true);
+      return;
+    }
 
-    return () => window.clearTimeout(timer);
-  }, [loadUser]);
+    void loadUser();
+  }, [authLoading, loadUser]);
 
-  const updateCurrentUser = useCallback((updatedUser) => {
-    setUser(updatedUser);
-  }, []);
+  const updateCurrentUser = useCallback(
+    (updatedUser) => {
+      setUser(updatedUser);
+    },
+    []
+  );
 
   return (
     <CurrentUserContext.Provider
       value={{
         user,
-        loading,
+        loading: authLoading || loading,
         updateCurrentUser,
         reloadUser: loadUser,
       }}

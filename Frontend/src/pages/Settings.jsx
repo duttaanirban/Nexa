@@ -10,8 +10,6 @@ const DEFAULT_PROJECT_OPTIONS = [
   "Design Tokens",
 ];
 
-const CURRENT_USER_ID = "USR-001";
-
 export default function Settings() {
   // Profile
   const [fullName, setFullName] = useState("");
@@ -45,48 +43,36 @@ export default function Settings() {
   const profileSectionRef = useRef(null);
   const accountSectionRef = useRef(null);
 
-  const { updateCurrentUser } = useCurrentUser();
+  const { user: currentUser,
+  loading: currentUserLoading,
+  updateCurrentUser, } = useCurrentUser();
 
   /*
    * Load current profile
    */
   useEffect(() => {
-    const loadProfile = async () => {
-      try {
-        setProfileLoading(true);
-        setProfileError(null);
+  if (currentUserLoading) {
+    setProfileLoading(true);
+    return;
+  }
 
-        const response = await api.getUserById(
-          CURRENT_USER_ID
-        );
+  if (!currentUser) {
+    setProfileLoading(false);
+    setProfileError("Unable to load the current user.");
+    return;
+  }
 
-        const user = response.data?.data ?? response.data;
-        updateCurrentUser(user);
+  setProfileLoading(false);
+  setProfileError(null);
 
-        setFullName(user.name || "");
-        setRole(user.role || "");
-        setEmail(user.email || "");
-        setDepartment(user.department || "");
-        setPhone(user.phone || "");
-        setBio(user.bio || "");
-        setInitials(user.initials || "");
-      } catch (error) {
-        console.error(
-          "Profile API error:",
-          error
-        );
-
-        setProfileError(
-          error.message ||
-            "Unable to load profile."
-        );
-      } finally {
-        setProfileLoading(false);
-      }
-    };
-
-    void loadProfile();
-  }, [updateCurrentUser]);
+  setFullName(currentUser.name || "");
+  setRole(currentUser.role || "");
+  setEmail(currentUser.email || "");
+  setDepartment(currentUser.department || "");
+  setPhone(currentUser.phone || "");
+  setBio(currentUser.bio || "");
+  setInitials(currentUser.initials || "");
+}, [currentUser, currentUserLoading]);
 
 /*
  * Scroll to requested settings section
@@ -140,6 +126,11 @@ useEffect(() => {
    */
   const handleSaveProfile = async (event) => {
     event.preventDefault();
+    
+    if (!currentUser?.id) {
+      setProfileError("Unable to identify the current user.");
+      return;
+    }
 
     try {
       setProfileSaving(true);
@@ -147,7 +138,7 @@ useEffect(() => {
       setProfileSaved(false);
 
       const response = await api.updateUser(
-        CURRENT_USER_ID,
+        currentUser.id,
         {
           name: fullName.trim(),
           role: role.trim(),
