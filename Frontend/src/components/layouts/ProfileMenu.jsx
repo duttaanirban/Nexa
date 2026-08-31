@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { useCurrentUser } from "../../context/useCurrentUser";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 const MENU_ITEMS = [
   {
@@ -29,6 +30,7 @@ const MENU_ITEMS = [
 
 export default function ProfileMenu() {
   const { user, loading } = useCurrentUser();
+  const { logout } = useAuth();
   const navigate = useNavigate();
 
   const [isOpen, setIsOpen] = useState(false);
@@ -42,7 +44,7 @@ export default function ProfileMenu() {
     triggerRef.current?.focus();
   };
 
-  const handleItemSelect = (item) => {
+  const handleItemSelect = async (item) => {
     if (item.id === "profile") {
       navigate("/settings?section=profile");
       closeMenu();
@@ -57,8 +59,16 @@ export default function ProfileMenu() {
 
     if (item.id === "sign-out") {
       closeMenu();
+
+      try {
+        await logout();
+        navigate("/login", { replace: true });
+      } catch (error) {
+        console.error("Logout error:", error);
+      }
+
       return;
-    }
+  }
 
     closeMenu();
   };
