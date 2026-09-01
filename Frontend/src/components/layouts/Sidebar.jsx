@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   MoreHorizontal,
   X,
@@ -22,8 +22,35 @@ export default function Sidebar({
   isOpen = false,
   onClose = () => {},
 }) {
-  
+  const navigate = useNavigate();
   const { user, loading } = useCurrentUser();
+
+  const handleShortcut = (item) => {
+    switch (item.id) {
+      case "backlog":
+        navigate("/tasks");
+        break;
+
+      case "sprints":
+        console.log("Sprints feature coming soon");
+        break;
+
+      case "reports":
+        console.log("Reports feature coming soon");
+        break;
+
+      case "plugins":
+        console.log("Plugins feature coming soon");
+        break;
+
+      default:
+        console.warn(
+          `No route configured for shortcut: ${item.id}`
+        );
+    }
+
+    onClose();
+  };
 
   return (
     <>
@@ -136,7 +163,7 @@ export default function Sidebar({
                   <button
                     key={item.id}
                     type="button"
-                    onClick={onClose}
+                    onClick={() => handleShortcut(item)}
                     className="flex min-h-10 w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-slate-400 transition-colors hover:bg-indigo-500/20 hover:text-indigo-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
                   >
                     <Icon
