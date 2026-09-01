@@ -4,6 +4,7 @@ import {
 } from "../data/mockData";
 
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { ChevronDown, Check } from "lucide-react";
 import { api } from "../api/api";
 
@@ -30,6 +31,7 @@ export default function Dashboard({
   loading = false,
   error = null,
 }) {
+  const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [users, setUsers] = useState([]);
@@ -417,6 +419,35 @@ export default function Dashboard({
     );
   }
 
+  const handleQuickAction = (action) => {
+  switch (action.id) {
+    case "backlog":
+      navigate("/tasks");
+      break;
+
+    case "sprints":
+      console.log("Sprints feature coming soon");
+      break;
+
+    case "reports":
+      console.log("Reports feature coming soon");
+      break;
+
+    case "plugins":
+      console.log("Plugins feature coming soon");
+      break;
+
+    case "alerts":
+      console.log("Alerts feature coming soon");
+      break;
+
+    default:
+      console.warn(
+        `No action configured for shortcut: ${action.id}`
+      );
+  }
+};
+
   return (
     <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-6">
 
@@ -556,7 +587,10 @@ export default function Dashboard({
 
       {/* Quick actions */}
       <QuickActions
-        actions={QUICK_ACTIONS}
+        actions={QUICK_ACTIONS.map((action) => ({
+          ...action,
+          onClick: () => handleQuickAction(action),
+        }))}
       />
 
       {/* Tasks */}

@@ -3,20 +3,15 @@ import { Zap } from "lucide-react";
 /**
  * QuickActions
  *
- * Section of shortcut buttons rendered from a supplied `actions`
- * array. Purely presentational — no data is imported, fetched, or
- * hardcoded here, and no navigation is wired up yet.
+ * Renders shortcut buttons from the supplied `actions` array.
  *
  * Props:
  * - actions: Array<{
  *     id: string
  *     label: string
- *     icon: React.ComponentType   — a Lucide icon component
+ *     icon: React.ComponentType
+ *     onClick?: () => void
  *   }>
- *
- * Usage:
- *   import { QUICK_ACTIONS } from "../../data/mockData";
- *   <QuickActions actions={QUICK_ACTIONS} />
  */
 export default function QuickActions({ actions = [] }) {
   return (
@@ -34,9 +29,16 @@ export default function QuickActions({ actions = [] }) {
       {actions.length === 0 ? (
         <div className="mt-4 flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-slate-300 px-6 py-8 text-center">
           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100">
-            <Zap size={16} className="text-slate-400" aria-hidden="true" />
+            <Zap
+              size={16}
+              className="text-slate-400"
+              aria-hidden="true"
+            />
           </div>
-          <p className="text-sm text-slate-500">No quick actions available</p>
+
+          <p className="text-sm text-slate-500">
+            No quick actions available
+          </p>
         </div>
       ) : (
         <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
@@ -48,11 +50,17 @@ export default function QuickActions({ actions = [] }) {
                 key={action.id}
                 type="button"
                 aria-label={action.label}
+                onClick={action.onClick}
                 className="flex h-24 flex-col items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-900 transition-colors hover:border-slate-300 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
               >
                 {Icon && (
-                  <Icon size={20} className="text-slate-500" aria-hidden="true" />
+                  <Icon
+                    size={20}
+                    className="text-slate-500"
+                    aria-hidden="true"
+                  />
                 )}
+
                 <span>{action.label}</span>
               </button>
             );
