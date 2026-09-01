@@ -3,39 +3,47 @@ import {
   AlertTriangle,
   XCircle,
   Circle,
-  Info,
   MoreVertical,
   Pencil,
   Trash2,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-const VARIANT_STYLES = {
-  success: {
+const STATUS_STYLES = {
+  "On track": {
     icon: CheckCircle2,
-    badgeClass: "bg-emerald-50 text-emerald-700",
+    badgeClass:
+      "bg-emerald-100 text-emerald-800 border border-emerald-300",
     barClass: "bg-emerald-500",
   },
-  warning: {
+
+  "In progress": {
     icon: AlertTriangle,
-    badgeClass: "bg-amber-50 text-amber-700",
+    badgeClass:
+      "bg-amber-100 text-amber-800 border border-amber-300",
     barClass: "bg-amber-500",
   },
-  danger: {
+
+  Blocked: {
     icon: XCircle,
-    badgeClass: "bg-red-50 text-red-700",
+    badgeClass:
+      "bg-red-100 text-red-800 border border-red-300",
     barClass: "bg-red-500",
   },
-  info: {
-    icon: Info,
-    badgeClass: "bg-blue-50 text-blue-700",
-    barClass: "bg-blue-500",
+
+  Completed: {
+    icon: CheckCircle2,
+    badgeClass:
+      "bg-emerald-100 text-emerald-800 border border-emerald-300",
+    barClass: "bg-emerald-500",
   },
-  neutral: {
-    icon: Circle,
-    badgeClass: "bg-slate-100 text-slate-600",
-    barClass: "bg-slate-400",
-  },
+};
+
+const DEFAULT_STATUS_STYLE = {
+  icon: Circle,
+  badgeClass:
+    "bg-slate-100 text-slate-700 border border-slate-300",
+  barClass: "bg-slate-400",
 };
 
 export default function ProjectCard({
@@ -52,15 +60,17 @@ export default function ProjectCard({
     description,
     progress,
     status,
-    variant = "neutral",
     team = [],
   } = project;
+  
 
   const {
     icon: StatusIcon,
     badgeClass,
     barClass,
-  } = VARIANT_STYLES[variant] ?? VARIANT_STYLES.neutral;
+  } =
+    STATUS_STYLES[status] ??
+    DEFAULT_STATUS_STYLE;
 
   const clampedProgress = Math.min(
     100,

@@ -5,6 +5,7 @@ import Projects from "./pages/Projects";
 import Tasks from "./pages/Tasks";
 import Team from "./pages/Team";
 import Settings from "./pages/Settings";
+import ProjectDetails from "./pages/ProjectDetails.jsx"
 import { TASK_FILTERS } from "./data/mockData";
 import { CurrentUserProvider } from "./context/CurrentUserContext.jsx";
 import Auth from "./pages/Auth";
@@ -29,6 +30,10 @@ export default function App() {
             <Route
               path="projects"
               element={<Projects />}
+            />
+            <Route
+              path="projects/:id"
+              element={<ProjectDetails />}
             />
 
             <Route

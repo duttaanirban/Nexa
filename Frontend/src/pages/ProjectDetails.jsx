@@ -45,7 +45,7 @@ const PRIORITY_STYLES = {
 };
 
 export default function ProjectDetails() {
-  const { projectId } = useParams();
+  const { id } = useParams();
 
   const [project, setProject] = useState(null);
   const [tasks, setTasks] = useState([]);
@@ -60,7 +60,7 @@ export default function ProjectDetails() {
         setIsLoading(true);
         setError(null);
 
-        const projectResponse = await api.getProjectById(projectId);
+        const projectResponse = await api.getProjectById(id);
         const currentProject = projectResponse?.data;
 
         if (!currentProject) {
@@ -99,7 +99,7 @@ export default function ProjectDetails() {
     return () => {
       isMounted = false;
     };
-  }, [projectId]);
+  }, [id]);
 
   const stats = useMemo(() => {
     const completed = tasks.filter(
