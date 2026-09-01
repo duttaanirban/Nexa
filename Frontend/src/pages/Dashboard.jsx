@@ -422,7 +422,7 @@ export default function Dashboard({
   const handleQuickAction = (action) => {
   switch (action.id) {
     case "backlog":
-      navigate("/tasks");
+      navigate("/tasks?status=todo");
       break;
 
     case "sprints":

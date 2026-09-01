@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Plus, Search, ListChecks, X } from "lucide-react";
 
 import TaskCard from "../components/dashboard/TaskCard";
@@ -23,12 +24,18 @@ const EMPTY_FORM = {
 };
 
 export default function Tasks({ filters = [] }) {
+  const [searchParams] = useSearchParams();
   const [tasks, setTasks] = useState([]);
   const [users, setUsers] = useState([]);
   const [projects, setProjects] = useState([]);
 
   const [query, setQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState(
+    searchParams.get("status") || "all"
+  );
+
+  const isBacklogView =
+  searchParams.get("status") === "todo";
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [projectFilter, setProjectFilter] = useState("all");
   const [assigneeFilter, setAssigneeFilter] = useState("all");
@@ -458,11 +465,13 @@ export default function Tasks({ filters = [] }) {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-xl font-semibold text-slate-900">
-            Tasks
+            {isBacklogView ? "Backlog" : "Tasks"}
           </h1>
 
           <p className="mt-1 text-sm text-slate-500">
-            Track and organize tasks across your projects.
+            {isBacklogView
+              ? "Unscheduled tasks waiting to be pulled into a sprint."
+              : "Track and organize tasks across your projects."}
           </p>
         </div>
 

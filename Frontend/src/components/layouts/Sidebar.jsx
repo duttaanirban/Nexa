@@ -28,7 +28,7 @@ export default function Sidebar({
   const handleShortcut = (item) => {
     switch (item.id) {
       case "backlog":
-        navigate("/tasks");
+        navigate("/tasks?status=todo");
         break;
 
       case "sprints":
