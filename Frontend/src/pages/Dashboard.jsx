@@ -438,7 +438,7 @@ export default function Dashboard({
       break;
 
     case "alerts":
-      console.log("Alerts feature coming soon");
+      navigate("/alerts");
       break;
 
     default:
