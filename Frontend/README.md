@@ -1,105 +1,105 @@
-AI-Powered Project & Task Management Platform
+# Nexa Workspace Frontend
 
-The frontend for a developer productivity dashboard built with React and Vite.
-It currently provides a responsive dashboard shell and presentation-ready mock
-data for projects, tasks, navigation, and user information.
+React and Vite client for the Nexa developer productivity and project management platform.
 
-## Current Features
+## Features
 
-- Responsive application layout with a collapsible mobile sidebar
-- Sidebar navigation for Dashboard, Projects, Tasks, Team, and Settings
-- Top navigation bar with user context
-- Dashboard statistics for projects and task progress
-- Project cards with progress, status, descriptions, and team members
-- Centralized mock data designed to be replaced by REST API responses later
-- Tailwind CSS styling and Lucide icons
-
-The application currently renders the Dashboard page. The other navigation
-items are represented in the UI but do not yet have separate page routes.
+- Responsive application layout with desktop and mobile sidebar navigation
+- Nexa SVG logo in the sidebar and browser favicon
+- Nexa Workspace browser title and product branding
+- Public login and registration flow
+- Protected application routes
+- Dashboard statistics, date ranges, activity, projects, tasks, and team workload
+- Project CRUD and project detail pages
+- Task CRUD, status updates, search, and filtering
+- Team member CRUD
+- Notifications with read and read-all actions
+- Sprint planning, reports, analytics, alerts, and settings views
+- Loading skeletons, error states, delete confirmations, and toast feedback
 
 ## Tech Stack
 
 - React 19
+- React Router 7
 - Vite 8
 - Tailwind CSS 4
+- Recharts
 - `lucide-react`
 - ESLint
 
-## Getting Started
-
-### Prerequisites
+## Requirements
 
 - Node.js 22 or newer
 - npm
+- Backend running at `http://localhost:5000`
 
-### Install dependencies
-
-From the `Frontend` directory:
+## Setup
 
 ```bash
 npm install
-```
-
-### Start the development server
-
-```bash
 npm run dev
 ```
 
-Then open the local URL shown by Vite, normally `http://localhost:5173/`.
+Vite normally serves the application at `http://localhost:5173`.
 
-### Create a production build
-
-```bash
-npm run build
-```
-
-### Preview the production build
+## Scripts
 
 ```bash
-npm run preview
+npm run dev       # Start the Vite development server
+npm run build     # Create a production build
+npm run preview   # Preview the production build
+npm run lint      # Run ESLint
 ```
 
-### Run linting
+The scripts invoke installed tools through Node directly. This is intentional for Windows because the repository path contains an ampersand (`&`).
 
-```bash
-npm run lint
-```
+## Routes
+
+| Path | Access | Purpose |
+| --- | --- | --- |
+| `/login` | Public | Login and registration |
+| `/` | Protected | Workspace dashboard |
+| `/projects` | Protected | Project list and management |
+| `/projects/:id` | Protected | Project details and tasks |
+| `/tasks` | Protected | Task management and filters |
+| `/team` | Protected | Team member management |
+| `/settings` | Protected | Profile, notifications, and workspace settings |
+| `/sprints` | Protected | Sprint planning |
+| `/sprints/:id` | Protected | Sprint details |
+| `/reports` | Protected | Reports and productivity analytics |
+| `/alerts` | Protected | Alert management |
 
 ## Project Structure
 
 ```text
 src/
+├── api/             # REST API client
+├── assets/          # Static frontend assets
 ├── components/
-│   ├── dashboard/       # Stats and project presentation components
-│   └── layouts/         # Application shell, sidebar, and navbar
-├── data/
-│   └── mockData.js      # Navigation, dashboard, project, and task data
-├── pages/
-│   └── Dashboard.jsx    # Current dashboard page
-├── App.jsx              # Application composition
-├── App.css              # App-level styles
-├── index.css            # Global styles and Tailwind import
-└── main.jsx             # React entry point
+│   ├── auth/        # Protected route handling
+│   ├── brand/       # NexaLogo SVG component
+│   ├── dashboard/   # Dashboard sections and visualizations
+│   ├── layouts/     # Sidebar, navbar, menus, and app layout
+│   └── ui/          # Shared skeleton, error, toast, and modal UI
+├── context/         # Authentication and current-user providers
+├── data/            # Navigation and frontend-managed data
+├── pages/           # Routed application screens
+├── App.jsx          # Router and provider composition
+├── App.css          # Application styles
+├── index.css        # Global styles and Tailwind import
+└── main.jsx         # React entry point
 ```
 
-## Data Layer
+The browser document title is `Nexa Workspace`, and `public/favicon.svg` is the Nexa mark used by `index.html`.
 
-Dashboard content is currently sourced from `src/data/mockData.js`. The data
-module keeps the UI components independent of the source, so API responses can
-replace the mock exports without changing the component structure.
+## API Integration
 
-## Development Notes
+The API client is in `src/api/api.js` and targets `http://localhost:5000/api`. Requests include `credentials: "include"` so the backend's HTTP-only authentication cookie is sent.
 
-The npm scripts invoke Vite through Node directly instead of the generated
-Windows command shim. This is intentional because the project path contains
-an ampersand (`&`), which can cause the shim to resolve the Vite path
-incorrectly on Windows.
+The dashboard, projects, tasks, team, reports, notifications, and current-user flows use backend API calls. Sprint and alert screens currently use frontend state/data modules.
 
-## Planned Work
+## Limitations
 
-- Add routing for Projects, Tasks, Team, and Settings
-- Connect dashboard data to a backend API
-- Add task creation, filtering, assignment, and status updates
-- Add authentication and persistent user/project data
-- Add AI-assisted project and task management workflows
+- The API base URL is hard-coded for local development.
+- No frontend automated test command is configured.
+- Backend data is in memory and resets when the backend restarts.
