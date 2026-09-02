@@ -13,6 +13,7 @@ import ProtectedRoute from "./components/auth/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import Sprints from "./pages/Sprints";
 import SprintDetails from "./pages/SprintDetails";
+import Reports from "./pages/Reports";
 
 export default function App() {
   return (
@@ -57,6 +58,7 @@ export default function App() {
 
             <Route path="sprints" element={<Sprints />} />
             <Route path="sprints/:id" element={<SprintDetails />} />
+            <Route path="reports" element={<Reports />} />
           </Route>
         </Route>
 

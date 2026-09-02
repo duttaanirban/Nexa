@@ -36,7 +36,7 @@ export default function Sidebar({
         break;
 
       case "reports":
-        console.log("Reports feature coming soon");
+        navigate("/reports");
         break;
 
       case "plugins":

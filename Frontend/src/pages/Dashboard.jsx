@@ -430,7 +430,7 @@ export default function Dashboard({
       break;
 
     case "reports":
-      console.log("Reports feature coming soon");
+      navigate("/reports");
       break;
 
     case "plugins":
