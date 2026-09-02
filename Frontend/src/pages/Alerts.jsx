@@ -249,7 +249,7 @@ function AlertModal({
             </h2>
 
             <p className="mt-1 text-sm text-slate-500">
-              Configure when Pulse should notify you.
+              Configure when Nexa should notify you.
             </p>
           </div>
 
@@ -497,7 +497,7 @@ export default function Alerts() {
       <header className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div>
           <p className="text-sm font-medium text-indigo-600">
-            Pulse Automation
+            Nexa Automation
           </p>
 
           <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-950">
@@ -585,7 +585,7 @@ export default function Alerts() {
           </h2>
 
           <p className="mt-1 text-sm text-slate-500">
-            Enable the rules you want Pulse to monitor.
+            Enable the rules you want Nexa to monitor.
           </p>
         </div>
 

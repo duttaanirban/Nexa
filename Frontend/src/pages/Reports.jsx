@@ -326,7 +326,7 @@ export default function Reports() {
       {/* Header */}
       <header>
         <p className="text-sm font-medium text-indigo-600">
-          Pulse Analytics
+          Nexa Analytics
         </p>
 
         <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-950">

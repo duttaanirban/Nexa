@@ -37,7 +37,7 @@ export default function Settings() {
   const [projectUpdates, setProjectUpdates] = useState(false);
 
   // Workspace
-  const [workspaceName, setWorkspaceName] = useState("Pulse");
+  const [workspaceName, setWorkspaceName] = useState("Nexa");
   const [defaultProject, setDefaultProject] = useState(
     DEFAULT_PROJECT_OPTIONS[0]
   );

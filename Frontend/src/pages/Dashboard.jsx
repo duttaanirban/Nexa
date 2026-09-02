@@ -456,7 +456,7 @@ export default function Dashboard({
 
         <div>
           <p className="text-sm font-medium text-indigo-600">
-            Pulse Workspace
+            Nexa Workspace
           </p>
 
           <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-950">

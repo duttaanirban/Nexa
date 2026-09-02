@@ -3,6 +3,7 @@ import {
   MoreHorizontal,
   X,
 } from "lucide-react";
+import NexaLogo from "../../components/brand/NexaLogo";
 
 import {
   NAV_ITEMS,
@@ -76,13 +77,12 @@ export default function Sidebar({
         {/* Logo / header */}
         <div className="flex h-18 shrink-0 items-center justify-between px-5">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600 text-base font-semibold text-white shadow-lg shadow-indigo-950/30">
-              P
-            </div>
+            <div className="flex items-center gap-3 px-2">
+              <NexaLogo size={42} />
 
-            <div>
-              <p className="text-base font-semibold tracking-tight text-white">Pulse</p>
-              <p className="text-[11px] text-slate-400">Dev Productivity</p>
+              <span className="text-2xl font-bold tracking-tight text-white">
+                Nexa
+              </span>
             </div>
           </div>
 

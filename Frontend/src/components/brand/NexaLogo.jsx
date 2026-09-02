@@ -1,0 +1,34 @@
+const NexaLogo = ({ size = 40, className = "" }) => {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 48 48"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      aria-label="Nexa logo"
+      role="img"
+    >
+      <defs>
+        <linearGradient id="nexa-blue" x1="8" y1="8" x2="31" y2="38" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#16C8F4" />
+          <stop offset="1" stopColor="#2563EB" />
+        </linearGradient>
+        <linearGradient id="nexa-violet" x1="28" y1="9" x2="40" y2="39" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#2563EB" />
+          <stop offset="1" stopColor="#7337E8" />
+        </linearGradient>
+      </defs>
+
+      <path d="M8 12L18 6V18L30 25V13L40 7V36L30 42V31L18 24V36L8 42V12Z" fill="url(#nexa-blue)" />
+      <path d="M8 12L18 18V36L8 42V12Z" fill="#0EA5E9" />
+      <path d="M18 6L30 13V25L18 18V6Z" fill="#1D8FF0" />
+      <path d="M18 24L30 31V42L18 36V24Z" fill="#334BE0" />
+      <path d="M30 13L40 7V36L30 42V31L34 28V18L30 20V13Z" fill="url(#nexa-violet)" />
+      <path d="M30 25L34 28L30 31L18 24L22 22L30 25Z" fill="#2D69E8" />
+    </svg>
+  );
+};
+
+export default NexaLogo;

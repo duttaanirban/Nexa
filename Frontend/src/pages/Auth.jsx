@@ -120,7 +120,7 @@ export default function Auth() {
               </div>
 
               <span className="text-xl font-semibold text-white">
-                Pulse
+                Nexa
               </span>
             </div>
 
@@ -196,7 +196,7 @@ export default function Auth() {
               </div>
 
               <span className="text-lg font-semibold text-white">
-                Pulse
+                Nexa
               </span>
             </div>
 
@@ -239,7 +239,7 @@ export default function Auth() {
               <p className="mt-2 text-sm text-slate-400">
                 {isLogin
                   ? "Log in to continue to your workspace."
-                  : "Create an account to start using Pulse."}
+                  : "Create an account to start using Nexa."}
               </p>
             </div>
 
