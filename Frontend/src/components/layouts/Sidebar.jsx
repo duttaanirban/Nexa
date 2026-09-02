@@ -32,7 +32,7 @@ export default function Sidebar({
         break;
 
       case "sprints":
-        console.log("Sprints feature coming soon");
+        navigate("/sprints");
         break;
 
       case "reports":

@@ -11,6 +11,8 @@ import { CurrentUserProvider } from "./context/CurrentUserContext.jsx";
 import Auth from "./pages/Auth";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext.jsx";
+import Sprints from "./pages/Sprints";
+import SprintDetails from "./pages/SprintDetails";
 
 export default function App() {
   return (
@@ -52,6 +54,9 @@ export default function App() {
               path="settings"
               element={<Settings />}
             />
+
+            <Route path="sprints" element={<Sprints />} />
+            <Route path="sprints/:id" element={<SprintDetails />} />
           </Route>
         </Route>
 
