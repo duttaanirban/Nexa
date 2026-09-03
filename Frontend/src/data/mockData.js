@@ -11,15 +11,8 @@ import {
 } from "lucide-react";
 
 /**
- * Mock data for the Developer Productivity Dashboard.
- *
- * This file contains presentation-independent data only.
- * UI components should consume this data without knowing
- * whether it comes from mock data or a future API.
- *
- * Task 2/3:
- * These exports can later be replaced with REST API responses
- * without requiring major changes to the UI components.
+ * Static presentation metadata used by the frontend.
+ * Entity data for users, projects, and tasks comes from the REST API.
  */
 
 /* ---------------------------------------------------------------
@@ -95,51 +88,6 @@ export const QUICK_ACTIONS = [
     id: "alerts",
     label: "Alerts",
     icon: Zap,
-  },
-];
-
-/* ---------------------------------------------------------------
-   CURRENT USER
---------------------------------------------------------------- */
-
-export const CURRENT_USER = {
-  id: "USR-001",
-  name: "Dummy User",
-  role: "Frontend Lead",
-  initials: "DU",
-  email: "dummyuser@example.com",
-};
-
-export const PROJECTS = [
-  {
-    id: "PRJ-01",
-    name: "Checkout Revamp",
-    description:
-      "Rebuild the payment flow with saved cards and one-tap retry.",
-    progress: 72,
-    status: "On track",
-    variant: "success",
-    team: ["AK", "RS", "MN"],
-  },
-  {
-    id: "PRJ-02",
-    name: "Realtime Notifications",
-    description:
-      "WebSocket service for in-app and push notification delivery.",
-    progress: 41,
-    status: "In progress",
-    variant: "warning",
-    team: ["JT", "PL"],
-  },
-  {
-    id: "PRJ-03",
-    name: "Design Tokens",
-    description:
-      "Shared token library consumed by web, mobile, and documentation.",
-    progress: 18,
-    status: "Blocked",
-    variant: "danger",
-    team: ["SD"],
   },
 ];
 

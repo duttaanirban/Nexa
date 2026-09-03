@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/authContext";
+import { api } from "../api/api";
 import NexaLogo from "../components/brand/NexaLogo";
 
 export default function Auth() {
   const [mode, setMode] = useState("login");
+  const [teamPreview, setTeamPreview] = useState([]);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -25,6 +27,34 @@ export default function Auth() {
   const { login, register } = useAuth();
 
   const isLogin = mode === "login";
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadTeamPreview = async () => {
+      try {
+        const response = await api.getUsers();
+        const users = Array.isArray(response.data)
+          ? response.data
+          : [];
+
+        if (isMounted) {
+          setTeamPreview(users.slice(0, 3));
+        }
+      } catch (loadError) {
+        console.error(
+          "Auth team preview API error:",
+          loadError
+        );
+      }
+    };
+
+    void loadTeamPreview();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -169,16 +199,14 @@ export default function Auth() {
               </div>
 
               <div className="mt-5 flex -space-x-2">
-                {["MK", "AK", "RS"].map(
-                  (initials) => (
+                {teamPreview.map((member) => (
                     <div
-                      key={initials}
+                      key={member.id}
                       className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-indigo-600 bg-white text-[11px] font-semibold text-indigo-600"
                     >
-                      {initials}
+                      {member.initials}
                     </div>
-                  )
-                )}
+                ))}
               </div>
             </div>
           </div>

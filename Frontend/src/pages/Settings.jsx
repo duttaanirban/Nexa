@@ -3,12 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { api } from "../api/api";
 import { useCurrentUser } from "../context/useCurrentUser";
 
-const DEFAULT_PROJECT_OPTIONS = [
-  "No default project",
-  "Checkout Revamp",
-  "Realtime Notifications",
-  "Design Tokens",
-];
+const NO_DEFAULT_PROJECT = "No default project";
 
 export default function Settings() {
   // Profile
@@ -38,9 +33,11 @@ export default function Settings() {
 
   // Workspace
   const [workspaceName, setWorkspaceName] = useState("Nexa");
-  const [defaultProject, setDefaultProject] = useState(
-    DEFAULT_PROJECT_OPTIONS[0]
-  );
+  const [defaultProject, setDefaultProject] =
+    useState(NO_DEFAULT_PROJECT);
+  const [projectOptions, setProjectOptions] = useState([
+    NO_DEFAULT_PROJECT,
+  ]);
   const [workspaceSaved, setWorkspaceSaved] = useState(false);
 
   const [searchParams] = useSearchParams();
@@ -48,6 +45,40 @@ export default function Settings() {
   const section = searchParams.get("section");
   const profileSectionRef = useRef(null);
   const accountSectionRef = useRef(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadProjectOptions = async () => {
+      try {
+        const response = await api.getProjects();
+        const projects = Array.isArray(response.data)
+          ? response.data
+          : [];
+        const names = projects
+          .map((project) => project.name)
+          .filter(Boolean);
+
+        if (isMounted) {
+          setProjectOptions([
+            NO_DEFAULT_PROJECT,
+            ...names,
+          ]);
+        }
+      } catch (error) {
+        console.error(
+          "Settings projects API error:",
+          error
+        );
+      }
+    };
+
+    void loadProjectOptions();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   /*
    * Load current profile
@@ -603,7 +634,7 @@ useEffect(() => {
                 }
                 className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:outline-none focus-visible:border-blue-400 focus-visible:ring-2 focus-visible:ring-blue-500/30"
               >
-                {DEFAULT_PROJECT_OPTIONS.map(
+                {projectOptions.map(
                   (option) => (
                     <option
                       key={option}
