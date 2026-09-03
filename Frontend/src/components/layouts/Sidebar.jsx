@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   MoreHorizontal,
@@ -11,6 +12,7 @@ import {
 } from "../../data/mockData";
 
 import { useCurrentUser } from "../../context/useCurrentUser";
+import { api } from "../../api/api";
 
 /**
  * Sidebar
@@ -25,6 +27,40 @@ export default function Sidebar({
 }) {
   const navigate = useNavigate();
   const { user, loading } = useCurrentUser();
+  const [taskCount, setTaskCount] = useState(0);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadTaskCount = async () => {
+      try {
+        const response = await api.getTasks();
+        const tasks = Array.isArray(response.data)
+          ? response.data
+          : [];
+
+        if (isMounted) {
+          setTaskCount(tasks.length);
+        }
+      } catch (error) {
+        console.error("Sidebar task count error:", error);
+      }
+    };
+
+    loadTaskCount();
+    const refreshInterval = window.setInterval(
+      loadTaskCount,
+      5000
+    );
+
+    window.addEventListener("focus", loadTaskCount);
+
+    return () => {
+      isMounted = false;
+      window.clearInterval(refreshInterval);
+      window.removeEventListener("focus", loadTaskCount);
+    };
+  }, []);
 
   const handleShortcut = (item) => {
     switch (item.id) {
@@ -136,9 +172,9 @@ export default function Sidebar({
                     {item.label}
                   </span>
 
-                  {item.badge && (
+                  {(item.id === "tasks" || item.badge) && (
                     <span className="rounded-full bg-white/10 px-2 py-0.5 text-[11px] font-medium text-slate-300">
-                      {item.badge}
+                      {item.id === "tasks" ? taskCount : item.badge}
                     </span>
                   )}
                 </NavLink>

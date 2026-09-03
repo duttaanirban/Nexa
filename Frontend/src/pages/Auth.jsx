@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Activity } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/authContext";
+import NexaLogo from "../components/brand/NexaLogo";
 
 export default function Auth() {
   const [mode, setMode] = useState("login");
@@ -15,6 +16,9 @@ export default function Auth() {
 
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] =
+    useState(false);
 
   const navigate = useNavigate();
 
@@ -45,6 +49,8 @@ export default function Auth() {
       password: "",
       confirmPassword: "",
     });
+    setShowPassword(false);
+    setShowConfirmPassword(false);
   };
 
   const handleSubmit = async (event) => {
@@ -115,9 +121,7 @@ export default function Auth() {
         <section className="hidden w-1/2 flex-col justify-between bg-indigo-600 p-10 lg:flex">
           <div>
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 text-white">
-                <Activity size={21} />
-              </div>
+              <NexaLogo size={40} />
 
               <span className="text-xl font-semibold text-white">
                 Nexa
@@ -191,9 +195,7 @@ export default function Auth() {
 
             {/* Mobile logo */}
             <div className="mb-8 flex items-center gap-3 lg:hidden">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600 text-white">
-                <Activity size={18} />
-              </div>
+              <NexaLogo size={36} />
 
               <span className="text-lg font-semibold text-white">
                 Nexa
@@ -309,21 +311,33 @@ export default function Auth() {
                   Password
                 </label>
 
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="At least 8 characters"
-                  autoComplete={
-                    isLogin
-                      ? "current-password"
-                      : "new-password"
-                  }
-                  disabled={submitting}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-600 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 disabled:cursor-not-allowed disabled:opacity-60"
-                />
+                <div className="relative">
+                  <input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    value={formData.password}
+                    onChange={handleChange}
+                    placeholder="At least 8 characters"
+                    autoComplete={
+                      isLogin
+                        ? "current-password"
+                        : "new-password"
+                    }
+                    disabled={submitting}
+                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 pr-12 text-sm text-white outline-none placeholder:text-slate-600 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((current) => !current)}
+                    disabled={submitting}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    title={showPassword ? "Hide password" : "Show password"}
+                    className="absolute inset-y-0 right-0 flex items-center px-4 text-slate-400 transition hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
               </div>
 
               {!isLogin && (
@@ -335,17 +349,29 @@ export default function Auth() {
                     Confirm password
                   </label>
 
-                  <input
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    type="password"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    placeholder="Re-enter your password"
-                    autoComplete="new-password"
-                    disabled={submitting}
-                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-600 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 disabled:cursor-not-allowed disabled:opacity-60"
-                  />
+                  <div className="relative">
+                    <input
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      type={showConfirmPassword ? "text" : "password"}
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      placeholder="Re-enter your password"
+                      autoComplete="new-password"
+                      disabled={submitting}
+                      className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 pr-12 text-sm text-white outline-none placeholder:text-slate-600 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword((current) => !current)}
+                      disabled={submitting}
+                      aria-label={showConfirmPassword ? "Hide password confirmation" : "Show password confirmation"}
+                      title={showConfirmPassword ? "Hide password confirmation" : "Show password confirmation"}
+                      className="absolute inset-y-0 right-0 flex items-center px-4 text-slate-400 transition hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
                 </div>
               )}
 
