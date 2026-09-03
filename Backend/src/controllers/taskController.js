@@ -1,5 +1,8 @@
 const { pool } = require("../config/database");
 const { addActivity } = require("../services/activityService");
+const {
+  createNotification,
+} = require("../services/notificationService");
 
 /*
  * Convert a database task row into the response
@@ -68,6 +71,7 @@ const getTasks = async (req, res) => {
 
     if (status) {
       values.push(status);
+
       conditions.push(
         `t.status = $${values.length}`
       );
@@ -75,6 +79,7 @@ const getTasks = async (req, res) => {
 
     if (priority) {
       values.push(priority);
+
       conditions.push(
         `t.priority = $${values.length}`
       );
@@ -82,6 +87,7 @@ const getTasks = async (req, res) => {
 
     if (project) {
       values.push(project);
+
       conditions.push(
         `LOWER(p.name) = LOWER($${values.length})`
       );
@@ -268,9 +274,8 @@ const createTask = async (req, res) => {
       });
     }
 
-    const projectId = await getProjectIdByName(
-      project
-    );
+    const projectId =
+      await getProjectIdByName(project);
 
     if (!projectId) {
       return res.status(400).json({
@@ -279,13 +284,16 @@ const createTask = async (req, res) => {
       });
     }
 
-    const user = await getUserByInitials(assignee);
+    const user = await getUserByInitials(
+      assignee
+    );
 
     /*
      * We preserve the initials even if there isn't
      * currently a matching user record.
      */
     const assigneeId = user?.id || null;
+
     const assigneeInitials =
       user?.initials ||
       String(assignee).trim().toUpperCase();
@@ -295,6 +303,7 @@ const createTask = async (req, res) => {
     const taskId = await generateTaskId();
 
     const createdAt = new Date();
+
     const completedAt =
       status === "done"
         ? createdAt
@@ -355,6 +364,21 @@ const createTask = async (req, res) => {
       result.rows[0]
     );
 
+    /*
+     * Create notification for the assigned user.
+     * Only users that actually exist in the users table
+     * receive a notification.
+     */
+    if (assigneeId) {
+      await createNotification({
+        userId: assigneeId,
+        type: "task",
+        title: "New task assigned",
+        description: `You were assigned "${newTask.title}".`,
+        project: newTask.project,
+      });
+    }
+
     addActivity({
       type: "task-created",
       title: "Created new task",
@@ -371,7 +395,10 @@ const createTask = async (req, res) => {
   } catch (error) {
     await client.query("ROLLBACK");
 
-    console.error("Create task error:", error);
+    console.error(
+      "Create task error:",
+      error
+    );
 
     return res.status(500).json({
       success: false,
@@ -555,7 +582,10 @@ const updateTask = async (req, res) => {
   } catch (error) {
     await client.query("ROLLBACK");
 
-    console.error("Update task error:", error);
+    console.error(
+      "Update task error:",
+      error
+    );
 
     return res.status(500).json({
       success: false,
@@ -594,7 +624,9 @@ const updateTaskStatus = async (
 
     const existing = await pool.query(
       `
-        SELECT id, completed_at
+        SELECT
+          id,
+          completed_at
         FROM tasks
         WHERE id = $1
       `,
@@ -650,6 +682,47 @@ const updateTaskStatus = async (
     const updatedTask = formatTask(
       taskResult.rows[0]
     );
+
+    /*
+     * Find the real database user assigned to this task.
+     */
+    const assigneeResult = await pool.query(
+      `
+        SELECT id
+        FROM users
+        WHERE UPPER(initials) = UPPER($1)
+      `,
+      [updatedTask.assignee]
+    );
+
+    const assigneeId =
+      assigneeResult.rows[0]?.id;
+
+    /*
+     * Create notifications for important status changes.
+     */
+    if (
+      assigneeId &&
+      (status === "done" ||
+        status === "blocked")
+    ) {
+      await createNotification({
+        userId: assigneeId,
+        type:
+          status === "done"
+            ? "success"
+            : "blocked",
+        title:
+          status === "done"
+            ? "Task completed"
+            : "Task blocked",
+        description:
+          status === "done"
+            ? `"${updatedTask.title}" was marked as completed.`
+            : `"${updatedTask.title}" has been marked as blocked.`,
+        project: updatedTask.project,
+      });
+    }
 
     addActivity({
       type:
@@ -733,7 +806,10 @@ const deleteTask = async (req, res) => {
       data: deletedTask,
     });
   } catch (error) {
-    console.error("Delete task error:", error);
+    console.error(
+      "Delete task error:",
+      error
+    );
 
     return res.status(500).json({
       success: false,
