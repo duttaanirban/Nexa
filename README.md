@@ -30,8 +30,8 @@ Nexa is a developer productivity and project management platform with a React da
 ## Technology
 
 - Frontend: React 19, React Router, Vite 8, Tailwind CSS 4, Recharts, Lucide React
-- Backend: Node.js, Express 5, JSON Web Tokens, bcryptjs, cookie-parser, CORS, dotenv
-- Data: In-memory controller data; restarting the backend resets runtime changes
+- Backend: Node.js, Express 5, JSON Web Tokens, bcryptjs, cookie-parser, CORS, dotenv, node-postgres
+- Data: PostgreSQL persistence for users, projects, project members, and tasks; activity and seeded notifications remain in memory
 
 ## Run Locally
 
@@ -42,6 +42,19 @@ cd Frontend
 npm install
 cd ../Backend
 npm install
+```
+
+Create a PostgreSQL database and apply the backend schema before starting the API:
+
+```bash
+cd Backend
+psql -d nexa -f src/config/schema.sql
+```
+
+Set `DATABASE_URL` in `Backend/.env`:
+
+```env
+DATABASE_URL=postgresql://postgres:password@localhost:5432/nexa
 ```
 
 Start the backend in one terminal:
@@ -94,13 +107,13 @@ The frontend scripts call Vite and ESLint through Node directly. This avoids Win
 
 ## Configuration
 
-The backend loads environment variables with `dotenv`. Set `PORT` to change the API port and `JWT_SECRET` to provide the signing secret. Without these values, the backend uses port `5000` and a development fallback secret.
+The backend loads environment variables with `dotenv`. Set `PORT` to change the API port, `JWT_SECRET` to provide the signing secret, and `DATABASE_URL` to configure the PostgreSQL connection. Without `PORT`, the backend uses port `5000`; without `JWT_SECRET`, it uses a development fallback secret.
 
 The current CORS configuration allows the frontend origin `http://localhost:5173` with credentials enabled.
 
 ## Current Limitations
 
-- Application data is held in memory and is not persisted to a database.
+- Activity history and seeded notifications are held in memory and reset when the backend restarts.
 - Sprint and alert data are currently managed in frontend state and local data modules.
 - The API base URL is currently hard-coded to `http://localhost:5000/api` in the frontend.
 - No automated test suite is currently configured.

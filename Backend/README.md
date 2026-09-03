@@ -6,18 +6,20 @@ Express REST API for the Nexa developer productivity and project management plat
 
 - Runtime: Node.js with Express 5
 - Authentication: JSON Web Token stored in an HTTP-only cookie
-- Data store: In-memory arrays and service state
+- Data store: PostgreSQL for users, projects, project members, and tasks
+- Temporary state: In-memory activity history and seeded notifications
 - Default URL: `http://localhost:5000`
 - API prefix: `http://localhost:5000/api`
 - Request format: JSON
 - CORS: `http://localhost:5173` with credentials enabled
 
-Data is reset whenever the server restarts. This backend is intended for local development and demonstration until a persistent database is connected.
+The backend uses PostgreSQL through the `pg` connection pool. User, project, project-member, and task changes persist across server restarts. Activity entries and the current seeded notification data remain in memory and are reset when the server restarts.
 
 ## Requirements
 
 - Node.js 22 or newer
 - npm
+- PostgreSQL
 
 ## Setup and Run
 
@@ -34,6 +36,19 @@ npm start
 
 The server listens on `PORT` when provided, or port `5000` by default.
 
+### PostgreSQL Setup
+
+1. Create a PostgreSQL database for the backend.
+2. Apply the schema from `src/config/schema.sql`:
+
+```bash
+psql -d nexa -f src/config/schema.sql
+```
+
+3. Set `DATABASE_URL` in the backend environment so the server can connect to the database.
+
+The server tests the PostgreSQL connection before it starts listening. If the database is unavailable, startup fails with a connection error.
+
 ### Environment Variables
 
 Create a `.env` file in `Backend/` when overriding the defaults:
@@ -42,6 +57,7 @@ Create a `.env` file in `Backend/` when overriding the defaults:
 PORT=5000
 JWT_SECRET=replace-with-a-development-secret
 NODE_ENV=development
+DATABASE_URL=postgresql://postgres:password@localhost:5432/nexa
 ```
 
 `JWT_SECRET` defaults to a development fallback when it is not set. Use a strong secret outside local development.
@@ -173,7 +189,7 @@ The `project` filter is case-insensitive. Moving a task to `done` adds `complete
 | --- | --- | --- | --- |
 | `GET` | `/activity` | No | Returns recent activity and `count`. |
 
-Activity is generated when projects or tasks are created, updated, or deleted, and when a task status changes. The service keeps the latest 50 entries in memory.
+Activity is generated when projects or tasks are created, updated, or deleted, and when a task status changes. The service keeps the latest 50 entries in memory; activity is not yet persisted to PostgreSQL.
 
 ### Notifications
 
@@ -190,7 +206,7 @@ All notification endpoints require a valid `pulse_token` cookie.
 ### Authentication workflow
 
 1. The client sends registration or login credentials as JSON.
-2. The auth controller validates the request and checks the in-memory users array.
+2. The auth controller validates the request and checks users in PostgreSQL.
 3. Registration hashes the password with bcrypt; login compares the supplied password with the stored hash.
 4. The server signs a seven-day JWT containing the user ID and email.
 5. The token is written to the HTTP-only `pulse_token` cookie.
@@ -202,7 +218,7 @@ All notification endpoints require a valid `pulse_token` cookie.
 1. The client loads projects, tasks, users, activity, and the current user.
 2. Create or update requests pass through required-field validation before reaching the controller.
 3. Task create/update/status requests also validate status and priority values.
-4. The controller mutates the in-memory collection and returns the changed resource.
+4. The controller reads from or writes to PostgreSQL and returns the changed resource.
 5. Project and task mutations append an activity record with a timestamp.
 6. The client refreshes the relevant list or detail view from the API.
 
@@ -231,8 +247,9 @@ All notification endpoints require a valid `pulse_token` cookie.
 src/
 ├── app.js                 # Express app, middleware, and route registration
 ├── server.js              # Environment loading and HTTP server startup
-├── controllers/           # Request handlers and in-memory domain data
-├── data/                  # Seeded notification data
+├── config/                # PostgreSQL connection and database schema
+├── controllers/           # Request handlers and PostgreSQL queries
+├── data/                  # Seeded in-memory notification data
 ├── middleware/            # Auth, validation, not-found, and error handling
 ├── routes/                # API route definitions
 ├── services/              # Shared activity service
@@ -241,7 +258,7 @@ src/
 
 ## Current Limitations
 
-- Data is not persisted and resets on restart.
+- Users, projects, project members, and tasks are persisted in PostgreSQL; activity and seeded notifications reset on restart.
 - Most user, project, and task endpoints are currently public; only `/auth/me` and notification routes use `protect`.
 - Seeded users are demonstration records and are not all configured with a login password.
 - The CORS origin is hard-coded to `http://localhost:5173`.
