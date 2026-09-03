@@ -1,7 +1,7 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-const { users } = require("./userController");
+const { pool } = require("../config/database");
 
 const JWT_SECRET =
   process.env.JWT_SECRET || "pulse-development-secret";
@@ -18,6 +18,18 @@ const createToken = (user) => {
     }
   );
 };
+
+const toSafeUser = (user) => ({
+  id: user.id,
+  name: user.name,
+  role: user.role,
+  initials: user.initials,
+  email: user.email,
+  department: user.department || "",
+  phone: user.phone || "",
+  bio: user.bio || "",
+  createdAt: user.created_at,
+});
 
 /**
  * Register a new user
@@ -42,8 +54,7 @@ const register = async (req, res) => {
     if (password.length < 8) {
       return res.status(400).json({
         success: false,
-        message:
-          "Password must be at least 8 characters",
+        message: "Password must be at least 8 characters",
       });
     }
 
@@ -54,19 +65,23 @@ const register = async (req, res) => {
       });
     }
 
-    const normalizedEmail = email
-      .trim()
-      .toLowerCase();
+    const normalizedName = name.trim();
+    const normalizedEmail = email.trim().toLowerCase();
 
-    const existingUser = users.find(
-      (user) =>
-        user.email.toLowerCase() === normalizedEmail
+    const existingUser = await pool.query(
+      `
+        SELECT id
+        FROM users
+        WHERE email = $1
+      `,
+      [normalizedEmail]
     );
 
-    if (existingUser) {
+    if (existingUser.rows.length > 0) {
       return res.status(409).json({
         success: false,
-        message: "An account with this email already exists",
+        message:
+          "An account with this email already exists",
       });
     }
 
@@ -75,44 +90,91 @@ const register = async (req, res) => {
       12
     );
 
-    const newUser = {
-      id: `USR-${String(users.length + 1).padStart(
-        3,
-        "0"
-      )}`,
-      name: name.trim(),
-      role: "Developer",
-      initials: name
-        .trim()
-        .split(/\s+/)
-        .map((part) => part[0])
-        .join("")
-        .slice(0, 2)
-        .toUpperCase(),
-      email: normalizedEmail,
-      password: hashedPassword,
-    };
+    const initials = normalizedName
+      .split(/\s+/)
+      .map((part) => part[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase();
 
-    users.push(newUser);
+    const idResult = await pool.query(`
+      SELECT
+        'USR-' ||
+        LPAD(
+          (
+            COALESCE(
+              MAX(
+                NULLIF(
+                  SUBSTRING(id FROM 5),
+                  ''
+                )::INTEGER
+              ),
+              0
+            ) + 1
+          )::TEXT,
+          3,
+          '0'
+        ) AS id
+      FROM users
+      WHERE id LIKE 'USR-%'
+    `);
+
+    const newUserId = idResult.rows[0].id;
+
+    const result = await pool.query(
+      `
+        INSERT INTO users (
+          id,
+          name,
+          role,
+          initials,
+          email,
+          password_hash
+        )
+        VALUES (
+          $1,
+          $2,
+          'Developer',
+          $3,
+          $4,
+          $5
+        )
+        RETURNING
+          id,
+          name,
+          role,
+          initials,
+          email,
+          department,
+          phone,
+          bio,
+          created_at
+      `,
+      [
+        newUserId,
+        normalizedName,
+        initials,
+        normalizedEmail,
+        hashedPassword,
+      ]
+    );
+
+    const newUser = result.rows[0];
 
     const token = createToken(newUser);
 
     res.cookie("pulse_token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure:
+        process.env.NODE_ENV === "production",
       sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    const {
-      password: _password,
-      ...safeUser
-    } = newUser;
-
     return res.status(201).json({
       success: true,
       message: "Account created successfully",
-      data: safeUser,
+      data: toSafeUser(newUser),
     });
   } catch (error) {
     console.error("Register error:", error);
@@ -142,19 +204,25 @@ const login = async (req, res) => {
       .trim()
       .toLowerCase();
 
-    const user = users.find(
-      (user) =>
-        user.email.toLowerCase() === normalizedEmail
+    const result = await pool.query(
+      `
+        SELECT *
+        FROM users
+        WHERE email = $1
+      `,
+      [normalizedEmail]
     );
 
-    if (!user) {
+    if (result.rows.length === 0) {
       return res.status(401).json({
         success: false,
         message: "Invalid email or password",
       });
     }
 
-    if (!user.password) {
+    const user = result.rows[0];
+
+    if (!user.password_hash) {
       return res.status(401).json({
         success: false,
         message:
@@ -165,7 +233,7 @@ const login = async (req, res) => {
     const passwordMatches =
       await bcrypt.compare(
         password,
-        user.password
+        user.password_hash
       );
 
     if (!passwordMatches) {
@@ -179,20 +247,16 @@ const login = async (req, res) => {
 
     res.cookie("pulse_token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure:
+        process.env.NODE_ENV === "production",
       sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    const {
-      password: _password,
-      ...safeUser
-    } = user;
-
     return res.status(200).json({
       success: true,
       message: "Login successful",
-      data: safeUser,
+      data: toSafeUser(user),
     });
   } catch (error) {
     console.error("Login error:", error);
@@ -209,28 +273,40 @@ const login = async (req, res) => {
  */
 const getMe = async (req, res) => {
   try {
-    const user = users.find(
-      (user) => user.id === req.user.id
+    const result = await pool.query(
+      `
+        SELECT
+          id,
+          name,
+          role,
+          initials,
+          email,
+          department,
+          phone,
+          bio,
+          created_at
+        FROM users
+        WHERE id = $1
+      `,
+      [req.user.id]
     );
 
-    if (!user) {
+    if (result.rows.length === 0) {
       return res.status(404).json({
         success: false,
         message: "User not found",
       });
     }
 
-    const {
-      password: _password,
-      ...safeUser
-    } = user;
-
     return res.status(200).json({
       success: true,
-      data: safeUser,
+      data: toSafeUser(result.rows[0]),
     });
   } catch (error) {
-    console.error("Get current user error:", error);
+    console.error(
+      "Get current user error:",
+      error
+    );
 
     return res.status(500).json({
       success: false,
