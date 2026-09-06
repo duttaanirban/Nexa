@@ -288,15 +288,16 @@ const createTask = async (req, res) => {
       assignee
     );
 
-    /*
-     * We preserve the initials even if there isn't
-     * currently a matching user record.
-     */
-    const assigneeId = user?.id || null;
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Assignee not found",
+      });
+    }
 
-    const assigneeInitials =
-      user?.initials ||
-      String(assignee).trim().toUpperCase();
+    const assigneeId = user.id;
+
+    const assigneeInitials = user.initials;
 
     await client.query("BEGIN");
 
@@ -503,14 +504,16 @@ const updateTask = async (req, res) => {
       assignee
     );
 
-    const assigneeId =
-      user?.id || null;
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Assignee not found",
+      });
+    }
 
-    const assigneeInitials =
-      user?.initials ||
-      String(assignee)
-        .trim()
-        .toUpperCase();
+    const assigneeId = user.id;
+
+    const assigneeInitials = user.initials;
 
     const existing =
       existingTask.rows[0];

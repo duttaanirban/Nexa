@@ -44,6 +44,7 @@ CREATE TABLE IF NOT EXISTS tasks (
 
     project_id VARCHAR(20) NOT NULL,
     assignee_id VARCHAR(20) NOT NULL,
+    assignee_initials VARCHAR(10),
 
     due VARCHAR(50) NOT NULL,
     priority VARCHAR(20) NOT NULL,
