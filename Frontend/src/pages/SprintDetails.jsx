@@ -83,7 +83,7 @@ export default function SprintDetails() {
 
   if (!sprint) {
     return (
-      <div className="flex min-h-[400px] items-center justify-center">
+      <div className="flex min-h-100 items-center justify-center">
         <div className="text-center">
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
             <Target className="h-6 w-6 text-slate-400" />

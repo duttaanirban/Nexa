@@ -78,6 +78,51 @@ CREATE TABLE IF NOT EXISTS tasks (
         )
 );
 
+CREATE TABLE IF NOT EXISTS sprints (
+    id VARCHAR(20) PRIMARY KEY,
+    name VARCHAR(150) NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'Upcoming',
+
+    goal TEXT DEFAULT '',
+
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+    CONSTRAINT chk_sprint_status
+        CHECK (
+            status IN (
+                'Active',
+                'Upcoming',
+                'Completed',
+                'Cancelled'
+            )
+        ),
+
+    CONSTRAINT chk_sprint_dates
+        CHECK (end_date >= start_date)
+);
+
+CREATE TABLE IF NOT EXISTS sprint_tasks (
+    sprint_id VARCHAR(20) NOT NULL,
+    task_id VARCHAR(20) NOT NULL,
+
+    PRIMARY KEY (sprint_id, task_id),
+
+    CONSTRAINT fk_sprint_tasks_sprint
+        FOREIGN KEY (sprint_id)
+        REFERENCES sprints(id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_sprint_tasks_task
+        FOREIGN KEY (task_id)
+        REFERENCES tasks(id)
+        ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_sprint_tasks_task_id
+    ON sprint_tasks(task_id);
+
 CREATE INDEX IF NOT EXISTS idx_tasks_project_id
     ON tasks(project_id);
 
@@ -86,3 +131,4 @@ CREATE INDEX IF NOT EXISTS idx_tasks_assignee_id
 
 CREATE INDEX IF NOT EXISTS idx_tasks_status
     ON tasks(status);
+

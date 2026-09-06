@@ -139,5 +139,40 @@ deleteUser: (id) =>
     request("/auth/logout", {
       method: "POST",
     }),
+
+      // Sprints
+  getSprints: () =>
+    request("/sprints"),
+
+  getSprintById: (id) =>
+    request(`/sprints/${id}`),
+
+  createSprint: (sprint) =>
+    request("/sprints", {
+      method: "POST",
+      body: JSON.stringify(sprint),
+    }),
+
+  updateSprint: (id, sprint) =>
+    request(`/sprints/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(sprint),
+    }),
+
+  deleteSprint: (id) =>
+    request(`/sprints/${id}`, {
+      method: "DELETE",
+    }),
+
+  addTaskToSprint: (sprintId, taskId) =>
+    request(`/sprints/${sprintId}/tasks`, {
+      method: "POST",
+      body: JSON.stringify({ taskId }),
+    }),
+
+  removeTaskFromSprint: (sprintId, taskId) =>
+    request(`/sprints/${sprintId}/tasks/${taskId}`, {
+      method: "DELETE",
+    }),
 };
 
