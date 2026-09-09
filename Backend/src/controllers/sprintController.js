@@ -114,8 +114,8 @@ const getSprints = async (req, res) => {
       SELECT
         s.id,
         s.name,
-        s.start_date AS "startDate",
-        s.end_date AS "endDate",
+        TO_CHAR(s.start_date, 'YYYY-MM-DD') AS "startDate",
+        TO_CHAR(s.end_date, 'YYYY-MM-DD') AS "endDate",
         s.status,
         s.goal,
         s.created_at AS "createdAt",
