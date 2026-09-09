@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import {
+  NavLink,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 import {
   MoreHorizontal,
   X,
@@ -26,8 +30,32 @@ export default function Sidebar({
   onClose = () => {},
 }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, loading } = useCurrentUser();
   const [taskCount, setTaskCount] = useState(0);
+  const isBacklogView =
+    location.pathname === "/tasks" &&
+    new URLSearchParams(location.search).get(
+      "status"
+    ) === "todo";
+
+  const isShortcutActive = (itemId) => {
+    if (itemId === "backlog") {
+      return isBacklogView;
+    }
+
+    if (itemId === "sprints") {
+      return location.pathname.startsWith(
+        "/sprints"
+      );
+    }
+
+    if (itemId === "reports") {
+      return location.pathname === "/reports";
+    }
+
+    return false;
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -157,6 +185,10 @@ export default function Sidebar({
                       "flex min-h-11 w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2",
                       isActive
+                        && !(
+                          item.id === "tasks" &&
+                          isBacklogView
+                        )
                         ? "bg-indigo-600 text-white shadow-sm shadow-indigo-950/30"
                         : "text-slate-300 hover:bg-white/10 hover:text-white",
                     ].join(" ")
@@ -200,7 +232,12 @@ export default function Sidebar({
                     key={item.id}
                     type="button"
                     onClick={() => handleShortcut(item)}
-                    className="flex min-h-10 w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-slate-400 transition-colors hover:bg-indigo-500/20 hover:text-indigo-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+                    className={[
+                      "flex min-h-10 w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950",
+                      isShortcutActive(item.id)
+                        ? "bg-indigo-600/25 text-indigo-100"
+                        : "text-slate-400 hover:bg-indigo-500/20 hover:text-indigo-100",
+                    ].join(" ")}
                   >
                     <Icon
                       size={16}

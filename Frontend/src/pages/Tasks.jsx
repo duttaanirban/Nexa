@@ -24,18 +24,19 @@ const EMPTY_FORM = {
 };
 
 export default function Tasks({ filters = [] }) {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] =
+    useSearchParams();
   const [tasks, setTasks] = useState([]);
   const [users, setUsers] = useState([]);
   const [projects, setProjects] = useState([]);
 
   const [query, setQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState(
-    searchParams.get("status") || "all"
-  );
+  const statusFromUrl =
+    searchParams.get("status") || "all";
+  const statusFilter = statusFromUrl;
 
   const isBacklogView =
-  searchParams.get("status") === "todo";
+    statusFromUrl === "todo";
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [projectFilter, setProjectFilter] = useState("all");
   const [assigneeFilter, setAssigneeFilter] = useState("all");
@@ -229,7 +230,11 @@ export default function Tasks({ filters = [] }) {
 
   const clearFilters = () => {
     setQuery("");
-    setStatusFilter("all");
+    setSearchParams((current) => {
+      const next = new URLSearchParams(current);
+      next.delete("status");
+      return next;
+    });
     setPriorityFilter("all");
     setProjectFilter("all");
     setAssigneeFilter("all");
@@ -475,14 +480,16 @@ export default function Tasks({ filters = [] }) {
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={openCreateForm}
-          className="inline-flex w-fit items-center gap-2 rounded-lg bg-indigo-600 px-3.5 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
-        >
-          <Plus size={16} />
-          Create task
-        </button>
+        {!isBacklogView && (
+          <button
+            type="button"
+            onClick={openCreateForm}
+            className="inline-flex w-fit items-center gap-2 rounded-lg bg-indigo-600 px-3.5 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+          >
+            <Plus size={16} />
+            Create task
+          </button>
+        )}
       </div>
 
       {/* API error */}
@@ -543,11 +550,24 @@ export default function Tasks({ filters = [] }) {
                 <button
                   key={filter.value}
                   type="button"
-                  onClick={() =>
-                    setStatusFilter(
-                      filter.value
-                    )
-                  }
+                  onClick={() => {
+                    setSearchParams((current) => {
+                      const next = new URLSearchParams(
+                        current
+                      );
+
+                      if (filter.value === "all") {
+                        next.delete("status");
+                      } else {
+                        next.set(
+                          "status",
+                          filter.value
+                        );
+                      }
+
+                      return next;
+                    });
+                  }}
                   aria-pressed={isActive}
                   className={[
                     "rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
