@@ -36,7 +36,12 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(cookieParser());
-
+app.get("/", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Nexa Workspace API is running",
+  });
+});
 app.use("/api/auth", authRoutes);
 
 app.get("/api/health", (req, res) => {
