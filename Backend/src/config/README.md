@@ -125,7 +125,9 @@ Expected application tables:
 ```text
 project_members
 projects
- tasks
+sprint_tasks
+sprints
+tasks
 users
 ```
 
@@ -267,12 +269,37 @@ Task-to-project deletion uses `ON DELETE CASCADE`. Task-to-assignee deletion use
 
 Indexes currently exist on `project_id`, `assignee_id`, and `status` to support common task lookups and filters.
 
+### `sprints`
+
+Stores time-boxed groups of work.
+
+| Column | Type | Rules | Purpose |
+| --- | --- | --- | --- |
+| `id` | `VARCHAR(20)` | Primary key | Application sprint ID |
+| `name` | `VARCHAR(150)` | Required | Sprint name |
+| `start_date` | `DATE` | Required | Sprint start date |
+| `end_date` | `DATE` | Required, must be on or after `start_date` | Sprint end date |
+| `status` | `VARCHAR(20)` | Required, `Active`, `Upcoming`, `Completed`, or `Cancelled` | Current sprint state |
+| `goal` | `TEXT` | Defaults to empty string | Sprint goal |
+| `created_at` | `TIMESTAMPTZ` | Required, defaults to `NOW()` | Creation timestamp |
+
+### `sprint_tasks`
+
+Joins sprints to tasks in a many-to-many relationship. Its composite primary key prevents the same task from being added to a sprint more than once. Both foreign keys use `ON DELETE CASCADE`, so deleting a sprint or task removes its join rows.
+
+| Column | Type | Rules | Purpose |
+| --- | --- | --- | --- |
+| `sprint_id` | `VARCHAR(20)` | Foreign key to `sprints.id` | Sprint target |
+| `task_id` | `VARCHAR(20)` | Foreign key to `tasks.id` | Task target |
+
 ## Relationships
 
 ```text
 users 1 ───────< tasks >─────── 1 projects
   │                              │
   └──────< project_members >─────┘
+
+sprints 1 ───────< sprint_tasks >─────── 1 tasks
 ```
 
 Referential rules:
@@ -281,8 +308,11 @@ Referential rules:
 - A user can be assigned many tasks.
 - A project can have many members.
 - A user can belong to many projects.
+- A sprint can contain many tasks.
+- A task can belong to many sprints.
 - Deleting a project deletes its tasks and membership rows.
 - Deleting a user removes membership rows but is blocked while tasks remain assigned to that user.
+- Deleting a sprint or task removes its sprint-task join rows.
 
 ## API-to-Database Mapping
 
@@ -338,7 +368,7 @@ SELECT current_database(), current_user, version();
 SELECT table_name
 FROM information_schema.tables
 WHERE table_schema = 'public'
-  AND table_name IN ('users', 'projects', 'project_members', 'tasks')
+  AND table_name IN ('users', 'projects', 'project_members', 'sprints', 'sprint_tasks', 'tasks')
 ORDER BY table_name;
 
 -- Confirm task foreign keys and indexes.
