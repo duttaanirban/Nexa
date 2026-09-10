@@ -211,7 +211,7 @@ export default function ProfileMenu() {
           role="menu"
           aria-orientation="vertical"
           aria-label="Account menu"
-          className="absolute right-0 z-50 mt-2 w-56 origin-top-right rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg"
+          className="absolute right-0 z-[60] mt-2 w-56 origin-top-right rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg"
         >
           {/* User information */}
           <div className="flex items-center gap-3 px-2.5 py-2">

@@ -43,6 +43,7 @@ export default function Settings() {
   const [searchParams] = useSearchParams();
 
   const section = searchParams.get("section");
+  const settingsPageRef = useRef(null);
   const profileSectionRef = useRef(null);
   const accountSectionRef = useRef(null);
 
@@ -108,24 +109,33 @@ export default function Settings() {
     return () => clearTimeout(timer);
   }, [currentUser, currentUserLoading]);
 
-/*
- * Scroll to requested settings section
- */
-useEffect(() => {
-  if (section === "profile") {
-    profileSectionRef.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-  }
+  /*
+   * Scroll the layout content without moving the navbar out of view.
+   */
+  useEffect(() => {
+    const settingsPage = settingsPageRef.current;
+    const scrollContainer = settingsPage?.parentElement;
 
-  if (section === "account") {
-    accountSectionRef.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-  }
-}, [section]);
+    if (!settingsPage || !scrollContainer) return;
+
+    if (section === "profile") {
+      scrollContainer.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+      return;
+    }
+
+    if (section === "account") {
+      scrollContainer.scrollTo({
+        top:
+          settingsPage.offsetTop +
+          (accountSectionRef.current?.offsetTop ?? 0) -
+          24,
+        behavior: "smooth",
+      });
+    }
+  }, [section]);
 
   /*
    * Auto-dismiss profile success message
@@ -231,7 +241,10 @@ useEffect(() => {
   };
 
   return (
-    <main className="mx-auto flex max-w-4xl flex-col gap-6">
+    <main
+      ref={settingsPageRef}
+      className="mx-auto flex max-w-4xl flex-col gap-6"
+    >
 
       {/* Page header */}
       <div>

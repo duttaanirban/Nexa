@@ -12,7 +12,7 @@ import GlobalSearch from "./GlobalSearch";
  */
 export default function Navbar({ onMenuClick = () => {} }) {
   return (
-    <header className="flex h-16 shrink-0 items-center gap-3 border-b border-slate-200 bg-white px-4 md:px-6">
+    <header className="relative z-30 flex h-16 shrink-0 items-center gap-3 border-b border-slate-200 bg-white px-4 md:px-6">
       {/* Mobile menu trigger */}
       <button
         type="button"
