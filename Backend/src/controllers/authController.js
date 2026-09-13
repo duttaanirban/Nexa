@@ -1,5 +1,7 @@
+const crypto = require("crypto");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const { sendResetEmail } = require("../utils/email");
 
 const { pool } = require("../config/database");
 
@@ -333,9 +335,103 @@ const logout = (req, res) => {
   });
 };
 
+/**
+ * Initiate Forgot Password Flow
+ */
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ success: false, message: "Email is required" });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const userResult = await pool.query("SELECT * FROM users WHERE email = $1", [normalizedEmail]);
+
+    if (userResult.rows.length === 0) {
+      // Return success anyway to prevent email enumeration attacks
+      return res.status(200).json({
+        success: true,
+        message: "If an account with that email exists, a password reset link has been sent.",
+      });
+    }
+
+    // Generate token
+    const rawToken = crypto.randomBytes(32).toString("hex");
+    const hashedToken = crypto.createHash("sha256").update(rawToken).digest("hex");
+    const expiresAt = new Date(Date.now() + 3600000); // 1 hour expiration
+
+    await pool.query(
+      `UPDATE users SET reset_token = $1, reset_token_expires = $2 WHERE email = $3`,
+      [hashedToken, expiresAt, normalizedEmail]
+    );
+
+    const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+    const resetUrl = `${clientUrl}/reset-password/${rawToken}`;
+
+    await sendResetEmail(normalizedEmail, resetUrl);
+
+    return res.status(200).json({
+      success: true,
+      message: "If an account with that email exists, a password reset link has been sent.",
+    });
+  } catch (error) {
+    console.error("Forgot password error:", error);
+    return res.status(500).json({ success: false, message: "Unable to process password reset request" });
+  }
+};
+
+/**
+ * Reset Password with Token
+ */
+const resetPassword = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { password } = req.body;
+
+    if (!password || password.length < 8) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must be at least 8 characters long",
+      });
+    }
+
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+    const userResult = await pool.query(
+      `SELECT * FROM users WHERE reset_token = $1 AND reset_token_expires > NOW()`,
+      [hashedToken]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired reset token",
+      });
+    }
+
+    const newPasswordHash = await bcrypt.hash(password, 12);
+
+    await pool.query(
+      `UPDATE users SET password_hash = $1, reset_token = NULL, reset_token_expires = NULL WHERE id = $2`,
+      [newPasswordHash, userResult.rows[0].id]
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Password reset successful. You can now log in with your new password.",
+    });
+  } catch (error) {
+    console.error("Reset password error:", error);
+    return res.status(500).json({ success: false, message: "Unable to reset password" });
+  }
+};
+
 module.exports = {
   register,
   login,
   getMe,
   logout,
+  forgotPassword,
+  resetPassword,
 };

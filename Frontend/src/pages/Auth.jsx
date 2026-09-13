@@ -6,7 +6,7 @@ import { api } from "../api/api";
 import NexaLogo from "../components/brand/NexaLogo";
 
 export default function Auth() {
-  const [mode, setMode] = useState("login");
+  const [mode, setMode] = useState("login"); // "login" | "register" | "forgot"
   const [teamPreview, setTeamPreview] = useState([]);
 
   const [formData, setFormData] = useState({
@@ -17,16 +17,16 @@ export default function Auth() {
   });
 
   const [error, setError] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] =
-    useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const navigate = useNavigate();
-
   const { login, register } = useAuth();
 
   const isLogin = mode === "login";
+  const isForgot = mode === "forgot";
 
   useEffect(() => {
     let isMounted = true;
@@ -34,18 +34,13 @@ export default function Auth() {
     const loadTeamPreview = async () => {
       try {
         const response = await api.getUsers();
-        const users = Array.isArray(response.data)
-          ? response.data
-          : [];
+        const users = Array.isArray(response.data) ? response.data : [];
 
         if (isMounted) {
           setTeamPreview(users.slice(0, 3));
         }
       } catch (loadError) {
-        console.error(
-          "Auth team preview API error:",
-          loadError
-        );
+        console.error("Auth team preview API error:", loadError);
       }
     };
 
@@ -72,6 +67,7 @@ export default function Auth() {
   const switchMode = (nextMode) => {
     setMode(nextMode);
     setError("");
+    setSuccessMsg("");
 
     setFormData({
       name: "",
@@ -85,9 +81,34 @@ export default function Auth() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-
     setError("");
+    setSuccessMsg("");
 
+    // Forgot password handler
+    if (isForgot) {
+      if (!formData.email.trim()) {
+        setError("Please enter your email address.");
+        return;
+      }
+
+      try {
+        setSubmitting(true);
+        const res = await api.forgotPassword(formData.email);
+        setSuccessMsg(
+          res.message ||
+            "If an account with that email exists, a password reset link has been sent."
+        );
+      } catch (err) {
+        setError(
+          err?.message || "Something went wrong. Please try again."
+        );
+      } finally {
+        setSubmitting(false);
+      }
+      return;
+    }
+
+    // Login and Register handlers
     if (!formData.email || !formData.password) {
       setError("Email and password are required.");
       return;
@@ -100,16 +121,11 @@ export default function Auth() {
       }
 
       if (formData.password.length < 8) {
-        setError(
-          "Password must be at least 8 characters."
-        );
+        setError("Password must be at least 8 characters.");
         return;
       }
 
-      if (
-        formData.password !==
-        formData.confirmPassword
-      ) {
+      if (formData.password !== formData.confirmPassword) {
         setError("Passwords do not match.");
         return;
       }
@@ -119,10 +135,7 @@ export default function Auth() {
       setSubmitting(true);
 
       if (isLogin) {
-        await login(
-          formData.email,
-          formData.password
-        );
+        await login(formData.email, formData.password);
       } else {
         await register(
           formData.name,
@@ -135,8 +148,7 @@ export default function Auth() {
       navigate("/", { replace: true });
     } catch (error) {
       setError(
-        error?.message ||
-          "Something went wrong. Please try again."
+        error?.message || "Something went wrong. Please try again."
       );
     } finally {
       setSubmitting(false);
@@ -146,13 +158,11 @@ export default function Auth() {
   return (
     <div className="min-h-screen bg-slate-950 p-4 sm:p-6">
       <div className="mx-auto flex min-h-[calc(100vh-2rem)] max-w-6xl overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl sm:min-h-[calc(100vh-3rem)]">
-
         {/* Left branding panel */}
         <section className="hidden w-1/2 flex-col justify-between bg-indigo-600 p-10 lg:flex">
           <div>
             <div className="flex items-center gap-3">
               <NexaLogo size={40} />
-
               <span className="text-xl font-semibold text-white">
                 Nexa
               </span>
@@ -162,10 +172,9 @@ export default function Auth() {
               <h1 className="text-4xl font-semibold tracking-tight text-white">
                 Ship better, together.
               </h1>
-
               <p className="mt-4 text-lg leading-7 text-indigo-100">
-                Track projects, tasks and team velocity
-                in one calm workspace.
+                Track projects, tasks and team velocity in one calm
+                workspace.
               </p>
             </div>
 
@@ -174,106 +183,102 @@ export default function Auth() {
                 <span className="text-sm font-medium text-white">
                   Velocity
                 </span>
-
                 <span className="text-sm text-indigo-100">
                   This week
                 </span>
               </div>
 
               <div className="mt-6 flex h-20 items-end justify-between gap-2">
-                {[32, 48, 68, 42, 56].map(
-                  (height, index) => (
-                    <div
-                      key={index}
-                      className={`w-full rounded-t ${
-                        index === 2
-                          ? "bg-white"
-                          : "bg-indigo-300/70"
-                      }`}
-                      style={{
-                        height: `${height}px`,
-                      }}
-                    />
-                  )
-                )}
+                {[32, 48, 68, 42, 56].map((height, index) => (
+                  <div
+                    key={index}
+                    className={`w-full rounded-t ${
+                      index === 2 ? "bg-white" : "bg-indigo-300/70"
+                    }`}
+                    style={{
+                      height: `${height}px`,
+                    }}
+                  />
+                ))}
               </div>
 
               <div className="mt-5 flex -space-x-2">
                 {teamPreview.map((member) => (
-                    <div
-                      key={member.id}
-                      className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-indigo-600 bg-white text-[11px] font-semibold text-indigo-600"
-                    >
-                      {member.initials}
-                    </div>
+                  <div
+                    key={member.id}
+                    className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-indigo-600 bg-white text-[11px] font-semibold text-indigo-600"
+                  >
+                    {member.initials}
+                  </div>
                 ))}
               </div>
             </div>
           </div>
 
           <p className="text-sm text-indigo-100">
-            Trusted by product teams shipping every
-            week.
+            Trusted by product teams shipping every week.
           </p>
         </section>
 
         {/* Right authentication panel */}
         <section className="flex w-full flex-col justify-center bg-slate-900 px-6 py-10 sm:px-10 lg:w-1/2">
           <div className="mx-auto w-full max-w-md">
-
             {/* Mobile logo */}
             <div className="mb-8 flex items-center gap-3 lg:hidden">
               <NexaLogo size={36} />
-
               <span className="text-lg font-semibold text-white">
                 Nexa
               </span>
             </div>
 
-            {/* Mode switch */}
-            <div className="grid grid-cols-2 rounded-xl bg-slate-950 p-1">
-              <button
-                type="button"
-                onClick={() => switchMode("login")}
-                className={`rounded-lg px-4 py-3 text-sm font-semibold transition ${
-                  isLogin
-                    ? "bg-slate-800 text-white shadow-sm"
-                    : "text-slate-400 hover:text-white"
-                }`}
-              >
-                Log in
-              </button>
+            {/* Mode switch (Hidden in Forgot Password mode) */}
+            {!isForgot && (
+              <div className="grid grid-cols-2 rounded-xl bg-slate-950 p-1">
+                <button
+                  type="button"
+                  onClick={() => switchMode("login")}
+                  className={`rounded-lg px-4 py-3 text-sm font-semibold transition ${
+                    isLogin
+                      ? "bg-slate-800 text-white shadow-sm"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  Log in
+                </button>
 
-              <button
-                type="button"
-                onClick={() =>
-                  switchMode("register")
-                }
-                className={`rounded-lg px-4 py-3 text-sm font-semibold transition ${
-                  !isLogin
-                    ? "bg-slate-800 text-white shadow-sm"
-                    : "text-slate-400 hover:text-white"
-                }`}
-              >
-                Create account
-              </button>
-            </div>
+                <button
+                  type="button"
+                  onClick={() => switchMode("register")}
+                  className={`rounded-lg px-4 py-3 text-sm font-semibold transition ${
+                    !isLogin
+                      ? "bg-slate-800 text-white shadow-sm"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  Create account
+                </button>
+              </div>
+            )}
 
             <div className="mt-8">
               <h2 className="text-2xl font-semibold text-white">
-                {isLogin
+                {isForgot
+                  ? "Reset your password"
+                  : isLogin
                   ? "Welcome back"
                   : "Create your account"}
               </h2>
 
               <p className="mt-2 text-sm text-slate-400">
-                {isLogin
+                {isForgot
+                  ? "Enter your email address and we'll send you a link to reset your password."
+                  : isLogin
                   ? "Log in to continue to your workspace."
                   : "Create an account to start using Nexa."}
               </p>
             </div>
 
-            {/* Error */}
+            {/* Error message */}
             {error && (
               <div
                 role="alert"
@@ -283,11 +288,21 @@ export default function Auth() {
               </div>
             )}
 
+            {/* Success message */}
+            {successMsg && (
+              <div
+                role="status"
+                className="mt-6 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300"
+              >
+                {successMsg}
+              </div>
+            )}
+
             <form
               className="mt-8 space-y-5"
               onSubmit={handleSubmit}
             >
-              {!isLogin && (
+              {!isLogin && !isForgot && (
                 <div>
                   <label
                     htmlFor="name"
@@ -331,44 +346,54 @@ export default function Auth() {
                 />
               </div>
 
-              <div>
-                <label
-                  htmlFor="password"
-                  className="mb-2 block text-sm font-medium text-slate-300"
-                >
-                  Password
-                </label>
-
-                <div className="relative">
-                  <input
-                    id="password"
-                    name="password"
-                    type={showPassword ? "text" : "password"}
-                    value={formData.password}
-                    onChange={handleChange}
-                    placeholder="At least 8 characters"
-                    autoComplete={
-                      isLogin
-                        ? "current-password"
-                        : "new-password"
-                    }
-                    disabled={submitting}
-                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 pr-12 text-sm text-white outline-none placeholder:text-slate-600 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 disabled:cursor-not-allowed disabled:opacity-60"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((current) => !current)}
-                    disabled={submitting}
-                    aria-label={showPassword ? "Hide password" : "Show password"}
-                    title={showPassword ? "Hide password" : "Show password"}
-                    className="absolute inset-y-0 right-0 flex items-center px-4 text-slate-400 transition hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+              {!isForgot && (
+                <div>
+                  <label
+                    htmlFor="password"
+                    className="mb-2 block text-sm font-medium text-slate-300"
                   >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
-                </div>
-              </div>
+                    Password
+                  </label>
 
-              {!isLogin && (
+                  <div className="relative">
+                    <input
+                      id="password"
+                      name="password"
+                      type={showPassword ? "text" : "password"}
+                      value={formData.password}
+                      onChange={handleChange}
+                      placeholder="At least 8 characters"
+                      autoComplete={
+                        isLogin ? "current-password" : "new-password"
+                      }
+                      disabled={submitting}
+                      className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 pr-12 text-sm text-white outline-none placeholder:text-slate-600 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setShowPassword((current) => !current)
+                      }
+                      disabled={submitting}
+                      aria-label={
+                        showPassword ? "Hide password" : "Show password"
+                      }
+                      title={
+                        showPassword ? "Hide password" : "Show password"
+                      }
+                      className="absolute inset-y-0 right-0 flex items-center px-4 text-slate-400 transition hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {showPassword ? (
+                        <EyeOff size={18} />
+                      ) : (
+                        <Eye size={18} />
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {!isLogin && !isForgot && (
                 <div>
                   <label
                     htmlFor="confirmPassword"
@@ -381,7 +406,9 @@ export default function Auth() {
                     <input
                       id="confirmPassword"
                       name="confirmPassword"
-                      type={showConfirmPassword ? "text" : "password"}
+                      type={
+                        showConfirmPassword ? "text" : "password"
+                      }
                       value={formData.confirmPassword}
                       onChange={handleChange}
                       placeholder="Re-enter your password"
@@ -391,13 +418,27 @@ export default function Auth() {
                     />
                     <button
                       type="button"
-                      onClick={() => setShowConfirmPassword((current) => !current)}
+                      onClick={() =>
+                        setShowConfirmPassword((current) => !current)
+                      }
                       disabled={submitting}
-                      aria-label={showConfirmPassword ? "Hide password confirmation" : "Show password confirmation"}
-                      title={showConfirmPassword ? "Hide password confirmation" : "Show password confirmation"}
+                      aria-label={
+                        showConfirmPassword
+                          ? "Hide password confirmation"
+                          : "Show password confirmation"
+                      }
+                      title={
+                        showConfirmPassword
+                          ? "Hide password confirmation"
+                          : "Show password confirmation"
+                      }
                       className="absolute inset-y-0 right-0 flex items-center px-4 text-slate-400 transition hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      {showConfirmPassword ? (
+                        <EyeOff size={18} />
+                      ) : (
+                        <Eye size={18} />
+                      )}
                     </button>
                   </div>
                 </div>
@@ -407,6 +448,7 @@ export default function Auth() {
                 <div className="flex justify-end">
                   <button
                     type="button"
+                    onClick={() => switchMode("forgot")}
                     className="text-sm font-medium text-indigo-400 hover:text-indigo-300"
                   >
                     Forgot password?
@@ -420,30 +462,47 @@ export default function Auth() {
                 className="w-full rounded-lg bg-indigo-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {submitting
-                  ? isLogin
+                  ? isForgot
+                    ? "Sending reset link..."
+                    : isLogin
                     ? "Logging in..."
                     : "Creating account..."
+                  : isForgot
+                  ? "Send reset link"
                   : isLogin
-                    ? "Log in"
-                    : "Create account"}
+                  ? "Log in"
+                  : "Create account"}
               </button>
             </form>
 
             <p className="mt-7 text-center text-sm text-slate-400">
-              {isLogin
-                ? "Don't have an account?"
-                : "Already have an account?"}{" "}
-              <button
-                type="button"
-                onClick={() =>
-                  switchMode(
-                    isLogin ? "register" : "login"
-                  )
-                }
-                className="font-medium text-indigo-400 hover:text-indigo-300"
-              >
-                {isLogin ? "Create one" : "Log in"}
-              </button>
+              {isForgot ? (
+                <>
+                  Remember your password?{" "}
+                  <button
+                    type="button"
+                    onClick={() => switchMode("login")}
+                    className="font-medium text-indigo-400 hover:text-indigo-300"
+                  >
+                    Log in
+                  </button>
+                </>
+              ) : (
+                <>
+                  {isLogin
+                    ? "Don't have an account?"
+                    : "Already have an account?"}{" "}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      switchMode(isLogin ? "register" : "login")
+                    }
+                    className="font-medium text-indigo-400 hover:text-indigo-300"
+                  >
+                    {isLogin ? "Create one" : "Log in"}
+                  </button>
+                </>
+              )}
             </p>
           </div>
         </section>

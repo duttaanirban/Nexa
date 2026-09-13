@@ -15,6 +15,7 @@ import Sprints from "./pages/Sprints";
 import SprintDetails from "./pages/SprintDetails";
 import Reports from "./pages/Reports";
 import Alerts from "./pages/Alerts";
+import ResetPassword from "./pages/ResetPassword.jsx";
 
 export default function App() {
   return (
@@ -25,6 +26,7 @@ export default function App() {
 
         {/* Public */}
         <Route path="/login" element={<Auth />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
 
         {/* Protected */}
         <Route element={<ProtectedRoute />}>
