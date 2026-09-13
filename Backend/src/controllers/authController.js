@@ -349,14 +349,12 @@ const forgotPassword = async (req, res) => {
     const userResult = await pool.query("SELECT * FROM users WHERE email = $1", [normalizedEmail]);
 
     if (userResult.rows.length === 0) {
-      // Return success anyway to prevent email enumeration attacks
       return res.status(200).json({
         success: true,
         message: "If an account with that email exists, a password reset link has been sent.",
       });
     }
 
-    // Generate token
     const rawToken = crypto.randomBytes(32).toString("hex");
     const hashedToken = crypto.createHash("sha256").update(rawToken).digest("hex");
     const expiresAt = new Date(Date.now() + 3600000); // 1 hour expiration
@@ -369,7 +367,10 @@ const forgotPassword = async (req, res) => {
     const clientUrl = process.env.FRONTEND_URL || "http://localhost:5173";
     const resetUrl = `${clientUrl}/reset-password/${rawToken}`;
 
-    await sendResetEmail(normalizedEmail, resetUrl);
+    // Fire-and-forget email dispatch so SMTP timeouts do not block the HTTP response
+    sendResetEmail(normalizedEmail, resetUrl).catch((emailErr) => {
+      console.error("Background SMTP email error:", emailErr);
+    });
 
     return res.status(200).json({
       success: true,
