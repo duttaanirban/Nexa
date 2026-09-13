@@ -366,7 +366,7 @@ const forgotPassword = async (req, res) => {
       [hashedToken, expiresAt, normalizedEmail]
     );
 
-    const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+    const clientUrl = process.env.FRONTEND_URL || "http://localhost:5173";
     const resetUrl = `${clientUrl}/reset-password/${rawToken}`;
 
     await sendResetEmail(normalizedEmail, resetUrl);
