@@ -225,40 +225,22 @@ const createTask = async (req, res) => {
     const {
       title,
       project,
-      assignee,
+      assignee = "", // Default to empty string if missing
       due,
       priority,
       status,
     } = req.body;
 
-    if (
-      !title ||
-      !project ||
-      !assignee ||
-      !due ||
-      !priority ||
-      !status
-    ) {
+    // Check required fields (assignee is now omitted)
+    if (!title || !project || !due || !priority || !status) {
       return res.status(400).json({
         success: false,
-        message:
-          "Title, project, assignee, due, priority, and status are required",
+        message: "Title, project, due, priority, and status are required",
       });
     }
 
-    const validPriorities = [
-      "High",
-      "Medium",
-      "Low",
-    ];
-
-    const validStatuses = [
-      "todo",
-      "in-progress",
-      "review",
-      "blocked",
-      "done",
-    ];
+    const validPriorities = ["High", "Medium", "Low"];
+    const validStatuses = ["todo", "in-progress", "review", "blocked", "done"];
 
     if (!validPriorities.includes(priority)) {
       return res.status(400).json({
@@ -274,9 +256,7 @@ const createTask = async (req, res) => {
       });
     }
 
-    const projectId =
-      await getProjectIdByName(project);
-
+    const projectId = await getProjectIdByName(project);
     if (!projectId) {
       return res.status(400).json({
         success: false,
@@ -284,31 +264,23 @@ const createTask = async (req, res) => {
       });
     }
 
-    const user = await getUserByInitials(
-      assignee
-    );
+    // Resolve user by initials if an assignee was provided
+    let assigneeId = null;
+    let assigneeInitials = "";
 
-    if (!user) {
-      return res.status(400).json({
-        success: false,
-        message: "Assignee not found",
-      });
+    if (assignee && assignee.trim() !== "") {
+      const user = await getUserByInitials(assignee);
+      if (user) {
+        assigneeId = user.id;
+        assigneeInitials = user.initials;
+      }
     }
-
-    const assigneeId = user.id;
-
-    const assigneeInitials = user.initials;
 
     await client.query("BEGIN");
 
     const taskId = await generateTaskId();
-
     const createdAt = new Date();
-
-    const completedAt =
-      status === "done"
-        ? createdAt
-        : null;
+    const completedAt = status === "done" ? createdAt : null;
 
     await client.query(
       `
@@ -324,18 +296,7 @@ const createTask = async (req, res) => {
           created_at,
           completed_at
         )
-        VALUES (
-          $1,
-          $2,
-          $3,
-          $4,
-          $5,
-          $6,
-          $7,
-          $8,
-          $9,
-          $10
-        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
       `,
       [
         taskId,
@@ -361,15 +322,8 @@ const createTask = async (req, res) => {
       [taskId]
     );
 
-    const newTask = formatTask(
-      result.rows[0]
-    );
+    const newTask = formatTask(result.rows[0]);
 
-    /*
-     * Create notification for the assigned user.
-     * Only users that actually exist in the users table
-     * receive a notification.
-     */
     if (assigneeId) {
       await createNotification({
         userId: assigneeId,
@@ -385,7 +339,7 @@ const createTask = async (req, res) => {
       title: "Created new task",
       description: newTask.title,
       project: newTask.project,
-      user: newTask.assignee,
+      user: newTask.assignee || "Unassigned",
     });
 
     return res.status(201).json({
@@ -395,12 +349,7 @@ const createTask = async (req, res) => {
     });
   } catch (error) {
     await client.query("ROLLBACK");
-
-    console.error(
-      "Create task error:",
-      error
-    );
-
+    console.error("Create task error:", error);
     return res.status(500).json({
       success: false,
       message: "Unable to create task",

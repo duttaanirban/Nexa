@@ -217,7 +217,125 @@ const prioritizeTasks = async (req, res) => {
   }
 };
 
+/**
+ * Generate AI Suggested Tasks from User Requirement
+ * POST /api/ai/generate-tasks/:projectId
+ */
+const generateTasks = async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const { description } = req.body;
+
+    if (!description || !description.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Requirement description is required",
+      });
+    }
+
+    if (!process.env.GEMINI_API_KEY) {
+      return res.status(500).json({
+        success: false,
+        message: "GEMINI_API_KEY environment variable is not set",
+      });
+    }
+
+    // 1. Fetch target project from PostgreSQL
+    const projectResult = await pool.query(
+      `SELECT id, name, description, status FROM projects WHERE id = $1`,
+      [projectId]
+    );
+
+    if (projectResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Project not found",
+      });
+    }
+
+    const project = projectResult.rows[0];
+
+    // 2. Fetch existing task titles to prevent duplicate suggestions
+    const existingTasksResult = await pool.query(
+      `SELECT title FROM tasks WHERE project_id = $1 LIMIT 30`,
+      [projectId]
+    );
+    const existingTitles = existingTasksResult.rows.map((t) => t.title);
+
+    // 3. Construct prompt
+    const prompt = `
+      You are Nexa AI, an assistant inside a project management application.
+      Convert the user's requirement into a practical set of software development tasks.
+
+      Project Name: ${project.name}
+      Project Goal: ${project.description}
+
+      User Requirement:
+      "${description.trim()}"
+
+      Existing Tasks in Project (Do NOT generate duplicates of these):
+      ${JSON.stringify(existingTitles)}
+
+      Instructions:
+      - Generate 4 to 8 actionable, specific, non-vague implementation tasks.
+      - Do not invent task IDs, timestamps, or assignees.
+      - Return only valid JSON matching the specified schema.
+    `;
+
+    // 4. Request Structured Output from Gemini
+    const response = await ai.models.generateContent({
+      model: "gemini-3.6-flash",
+      contents: prompt,
+      config: {
+        systemInstruction:
+          "Convert project requirements into actionable tasks in JSON format.",
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            summary: {
+              type: Type.STRING,
+              description: "Short explanation of the implementation plan.",
+            },
+            tasks: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  title: { type: Type.STRING },
+                  priority: {
+                    type: Type.STRING,
+                    enum: ["High", "Medium", "Low"],
+                  },
+                  reason: { type: Type.STRING },
+                },
+                required: ["title", "priority", "reason"],
+              },
+            },
+          },
+          required: ["summary", "tasks"],
+        },
+      },
+    });
+
+    const generatedData = JSON.parse(response.text);
+
+    return res.status(200).json({
+      success: true,
+      data: generatedData,
+    });
+  } catch (error) {
+    console.error("AI Task Generation Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: error?.message || "Unable to generate tasks right now",
+    });
+  }
+};
+
 module.exports = {
   analyzeProject,
   prioritizeTasks,
+  generateTasks,
 };

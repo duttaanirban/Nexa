@@ -66,6 +66,12 @@ export const api = {
       method: "POST",
     }),
 
+  generateTasksWithAI: (projectId, description) =>
+    request(`/ai/generate-tasks/${projectId}`, {
+      method: "POST",
+      body: JSON.stringify({ description }),
+    }),
+
   // Tasks
   getTasks: (params = "") =>
     request(`/tasks${params}`),

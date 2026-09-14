@@ -38,7 +38,6 @@ router.post(
   validateRequiredFields([
     "title",
     "project",
-    "assignee",
     "due",
     "priority",
     "status",
