@@ -1,6 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Plus, Search, ListChecks, X } from "lucide-react";
+import {
+  Plus,
+  Search,
+  ListChecks,
+  X,
+  Sparkles,
+  Loader2,
+  ListOrdered,
+  XCircle,
+} from "lucide-react";
 
 import TaskCard from "../components/dashboard/TaskCard";
 import { api } from "../api/api";
@@ -14,6 +23,12 @@ const PRIORITY_FILTERS = [
   { value: "Low", label: "Low" },
 ];
 
+const URGENCY_STYLES = {
+  High: "bg-red-100 text-red-800 border-red-200",
+  Medium: "bg-amber-100 text-amber-800 border-amber-200",
+  Low: "bg-slate-100 text-slate-700 border-slate-200",
+};
+
 const EMPTY_FORM = {
   title: "",
   project: "",
@@ -24,19 +39,16 @@ const EMPTY_FORM = {
 };
 
 export default function Tasks({ filters = [] }) {
-  const [searchParams, setSearchParams] =
-    useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [tasks, setTasks] = useState([]);
   const [users, setUsers] = useState([]);
   const [projects, setProjects] = useState([]);
 
   const [query, setQuery] = useState("");
-  const statusFromUrl =
-    searchParams.get("status") || "all";
+  const statusFromUrl = searchParams.get("status") || "all";
   const statusFilter = statusFromUrl;
 
-  const isBacklogView =
-    statusFromUrl === "todo";
+  const isBacklogView = statusFromUrl === "todo";
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [projectFilter, setProjectFilter] = useState("all");
   const [assigneeFilter, setAssigneeFilter] = useState("all");
@@ -50,6 +62,11 @@ export default function Tasks({ filters = [] }) {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // AI Task Prioritization state
+  const [aiPrioritization, setAiPrioritization] = useState(null);
+  const [prioritizeLoading, setPrioritizeLoading] = useState(false);
+  const [prioritizeError, setPrioritizeError] = useState("");
+
   // Delete confirmation state
   const [deletingTask, setDeletingTask] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -61,10 +78,6 @@ export default function Tasks({ filters = [] }) {
   });
 
   const safeFilters = Array.isArray(filters) ? filters : [];
-
-  /* ------------------------------------------------------------
-     Toast helpers
-  ------------------------------------------------------------ */
 
   const showToast = (message) => {
     setToast({
@@ -87,10 +100,6 @@ export default function Tasks({ filters = [] }) {
     });
   };
 
-  /* ------------------------------------------------------------
-     Load tasks, users and projects
-  ------------------------------------------------------------ */
-
   const loadTasks = async () => {
     try {
       setApiError(null);
@@ -98,16 +107,13 @@ export default function Tasks({ filters = [] }) {
       const response = await api.getTasks();
 
       setTasks(
-        Array.isArray(response.data)
-          ? response.data
-          : []
+        Array.isArray(response.data) ? response.data : []
       );
     } catch (error) {
       console.error("Tasks API error:", error);
 
       setApiError(
-        error?.message ||
-          "We couldn't load the tasks."
+        error?.message || "We couldn't load the tasks."
       );
     }
   };
@@ -146,14 +152,10 @@ export default function Tasks({ filters = [] }) {
             : []
         );
       } catch (error) {
-        console.error(
-          "Tasks page API error:",
-          error
-        );
+        console.error("Tasks page API error:", error);
 
         setApiError(
-          error?.message ||
-            "We couldn't load the tasks."
+          error?.message || "We couldn't load the tasks."
         );
       } finally {
         setIsLoading(false);
@@ -164,45 +166,64 @@ export default function Tasks({ filters = [] }) {
   }, []);
 
   /* ------------------------------------------------------------
+     AI Task Prioritization Handler
+  ------------------------------------------------------------ */
+  const handlePrioritizeAI = async () => {
+    if (prioritizeLoading) return;
+
+    let targetProjectId = "all";
+
+    if (projectFilter !== "all") {
+      const selectedProjObj = projects.find(
+        (p) => p.name.toLowerCase() === projectFilter.toLowerCase()
+      );
+      targetProjectId = selectedProjObj?.id || "all";
+    }
+
+    try {
+      setPrioritizeLoading(true);
+      setPrioritizeError("");
+
+      const response = await api.analyzeTaskPrioritization(targetProjectId);
+      const priorityResult = response?.data || response;
+
+      setAiPrioritization(priorityResult);
+    } catch (err) {
+      console.error("AI Task Prioritization error:", err);
+      setPrioritizeError(
+        err?.message || "Failed to prioritize tasks. Please try again."
+      );
+    } finally {
+      setPrioritizeLoading(false);
+    }
+  };
+
+  /* ------------------------------------------------------------
      Filtering
   ------------------------------------------------------------ */
 
-  const normalizedQuery = query
-    .trim()
-    .toLowerCase();
+  const normalizedQuery = query.trim().toLowerCase();
 
   const filteredTasks = useMemo(() => {
     return tasks.filter((task) => {
       const matchesStatus =
-        statusFilter === "all" ||
-        task.status === statusFilter;
+        statusFilter === "all" || task.status === statusFilter;
 
       const matchesPriority =
-        priorityFilter === "all" ||
-        task.priority === priorityFilter;
+        priorityFilter === "all" || task.priority === priorityFilter;
 
       const matchesProject =
-        projectFilter === "all" ||
-        task.project === projectFilter;
+        projectFilter === "all" || task.project === projectFilter;
 
       const matchesAssignee =
-        assigneeFilter === "all" ||
-        task.assignee === assigneeFilter;
+        assigneeFilter === "all" || task.assignee === assigneeFilter;
 
       const matchesQuery =
         normalizedQuery === "" ||
-        task.id
-          ?.toLowerCase()
-          .includes(normalizedQuery) ||
-        task.title
-          ?.toLowerCase()
-          .includes(normalizedQuery) ||
-        task.project
-          ?.toLowerCase()
-          .includes(normalizedQuery) ||
-        task.assignee
-          ?.toLowerCase()
-          .includes(normalizedQuery);
+        task.id?.toLowerCase().includes(normalizedQuery) ||
+        task.title?.toLowerCase().includes(normalizedQuery) ||
+        task.project?.toLowerCase().includes(normalizedQuery) ||
+        task.assignee?.toLowerCase().includes(normalizedQuery);
 
       return (
         matchesStatus &&
@@ -220,6 +241,12 @@ export default function Tasks({ filters = [] }) {
     assigneeFilter,
     normalizedQuery,
   ]);
+
+  const taskMap = useMemo(() => {
+    const map = new Map();
+    tasks.forEach((t) => map.set(t.id, t));
+    return map;
+  }, [tasks]);
 
   const hasActiveFilters =
     normalizedQuery !== "" ||
@@ -239,10 +266,6 @@ export default function Tasks({ filters = [] }) {
     setProjectFilter("all");
     setAssigneeFilter("all");
   };
-
-  /* ------------------------------------------------------------
-     Form helpers
-  ------------------------------------------------------------ */
 
   const openCreateForm = () => {
     setEditingTask(null);
@@ -284,10 +307,6 @@ export default function Tasks({ filters = [] }) {
     }));
   };
 
-  /* ------------------------------------------------------------
-     Create / Update
-  ------------------------------------------------------------ */
-
   const handleSubmit = async (event) => {
     event.preventDefault();
 
@@ -306,16 +325,13 @@ export default function Tasks({ filters = [] }) {
       setApiError(null);
 
       if (editingTask) {
-        await api.updateTask(
-          editingTask.id,
-          {
-            ...form,
-            title: form.title.trim(),
-            project: form.project.trim(),
-            assignee: form.assignee.trim(),
-            due: form.due.trim(),
-          }
-        );
+        await api.updateTask(editingTask.id, {
+          ...form,
+          title: form.title.trim(),
+          project: form.project.trim(),
+          assignee: form.assignee.trim(),
+          due: form.due.trim(),
+        });
 
         showToast("Task updated successfully.");
       } else {
@@ -336,59 +352,35 @@ export default function Tasks({ filters = [] }) {
       setEditingTask(null);
       setForm(EMPTY_FORM);
     } catch (error) {
-      console.error(
-        "Task save error:",
-        error
-      );
+      console.error("Task save error:", error);
 
       setApiError(
-        error?.message ||
-          "We couldn't save the task."
+        error?.message || "We couldn't save the task."
       );
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  /* ------------------------------------------------------------
-     Status update
-  ------------------------------------------------------------ */
-
-  const handleStatusChange = async (
-    task,
-    status
-  ) => {
+  const handleStatusChange = async (task, status) => {
     if (task.status === status) return;
 
     try {
       setApiError(null);
 
-      await api.updateTaskStatus(
-        task.id,
-        status
-      );
+      await api.updateTaskStatus(task.id, status);
 
       await loadTasks();
 
-      showToast(
-        "Task status updated successfully."
-      );
+      showToast("Task status updated successfully.");
     } catch (error) {
-      console.error(
-        "Task status update error:",
-        error
-      );
+      console.error("Task status update error:", error);
 
       setApiError(
-        error?.message ||
-          "We couldn't update the task status."
+        error?.message || "We couldn't update the task status."
       );
     }
   };
-
-  /* ------------------------------------------------------------
-     Delete
-  ------------------------------------------------------------ */
 
   const requestDelete = (task) => {
     setApiError(null);
@@ -402,9 +394,7 @@ export default function Tasks({ filters = [] }) {
   };
 
   const confirmDelete = async () => {
-    if (!deletingTask || isDeleting) {
-      return;
-    }
+    if (!deletingTask || isDeleting) return;
 
     try {
       setIsDeleting(true);
@@ -413,51 +403,32 @@ export default function Tasks({ filters = [] }) {
       await api.deleteTask(deletingTask.id);
 
       setTasks((current) =>
-        current.filter(
-          (task) =>
-            task.id !== deletingTask.id
-        )
+        current.filter((task) => task.id !== deletingTask.id)
       );
 
       setDeletingTask(null);
 
       showToast("Task deleted successfully.");
     } catch (error) {
-      console.error(
-        "Task delete error:",
-        error
-      );
+      console.error("Task delete error:", error);
 
       setApiError(
-        error?.message ||
-          "We couldn't delete the task."
+        error?.message || "We couldn't delete the task."
       );
     } finally {
       setIsDeleting(false);
     }
   };
 
-  /* ------------------------------------------------------------
-     Render
-  ------------------------------------------------------------ */
-
   const resultCount = filteredTasks.length;
-
-  const resultLabel = `${resultCount} task${
-    resultCount === 1 ? "" : "s"
-  }`;
+  const resultLabel = `${resultCount} task${resultCount === 1 ? "" : "s"}`;
 
   if (isLoading) {
     return (
       <main className="flex min-w-0 flex-col gap-6">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">
-            Tasks
-          </h1>
-
-          <p className="mt-1 text-sm text-slate-500">
-            Loading tasks...
-          </p>
+          <h1 className="text-xl font-semibold text-slate-900">Tasks</h1>
+          <p className="mt-1 text-sm text-slate-500">Loading tasks...</p>
         </div>
       </main>
     );
@@ -465,7 +436,6 @@ export default function Tasks({ filters = [] }) {
 
   return (
     <main className="flex min-w-0 flex-col gap-6">
-
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
@@ -480,16 +450,37 @@ export default function Tasks({ filters = [] }) {
           </p>
         </div>
 
-        {!isBacklogView && (
+        <div className="flex shrink-0 items-center gap-2">
           <button
             type="button"
-            onClick={openCreateForm}
-            className="inline-flex w-fit items-center gap-2 rounded-lg bg-indigo-600 px-3.5 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+            onClick={handlePrioritizeAI}
+            disabled={prioritizeLoading}
+            className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 px-3.5 py-2 text-sm font-medium text-indigo-700 shadow-sm transition hover:bg-indigo-100 disabled:cursor-not-allowed disabled:opacity-70"
           >
-            <Plus size={16} />
-            Create task
+            {prioritizeLoading ? (
+              <>
+                <Loader2 size={16} className="animate-spin text-indigo-700" />
+                <span>Analyzing tasks...</span>
+              </>
+            ) : (
+              <>
+                <ListOrdered size={16} />
+                <span>✨ Prioritize Tasks with Nexa AI</span>
+              </>
+            )}
           </button>
-        )}
+
+          {!isBacklogView && (
+            <button
+              type="button"
+              onClick={openCreateForm}
+              className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-3.5 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+            >
+              <Plus size={16} />
+              Create task
+            </button>
+          )}
+        </div>
       </div>
 
       {/* API error */}
@@ -499,7 +490,6 @@ export default function Tasks({ filters = [] }) {
           className="flex items-center justify-between gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
         >
           <span>{apiError}</span>
-
           <button
             type="button"
             onClick={() => setApiError(null)}
@@ -509,6 +499,134 @@ export default function Tasks({ filters = [] }) {
             <X size={15} />
           </button>
         </div>
+      )}
+
+      {/* AI Prioritization Error Alert */}
+      {prioritizeError && (
+        <div className="flex items-center justify-between rounded-xl border border-red-200 bg-red-50/50 p-4 text-sm text-red-700">
+          <div className="flex items-center gap-2">
+            <XCircle size={16} className="shrink-0 text-red-500" />
+            <span>{prioritizeError}</span>
+          </div>
+          <button
+            type="button"
+            onClick={handlePrioritizeAI}
+            className="font-medium underline hover:text-red-900"
+          >
+            Try again
+          </button>
+        </div>
+      )}
+
+      {/* AI Task Prioritization Panel */}
+      {aiPrioritization && (
+        <section className="rounded-xl border border-indigo-200 bg-gradient-to-b from-indigo-50/60 via-white to-white p-5 shadow-sm sm:p-6">
+          <div className="flex items-center justify-between border-b border-indigo-100 pb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white">
+                <Sparkles size={16} />
+              </div>
+              <div>
+                <h2 className="text-base font-semibold text-slate-950">
+                  Nexa AI Task Prioritization
+                </h2>
+                <p className="text-xs text-slate-500">
+                  {projectFilter !== "all"
+                    ? `Recommended order for ${projectFilter}`
+                    : "Recommended priority order for your project tasks"}
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setAiPrioritization(null)}
+              className="text-xs text-slate-400 hover:text-slate-600"
+            >
+              Dismiss
+            </button>
+          </div>
+
+          <div className="mt-5 space-y-4">
+            {aiPrioritization.summary && (
+              <p className="text-sm leading-6 text-slate-600 bg-white p-3.5 rounded-lg border border-slate-100 shadow-2xs">
+                {aiPrioritization.summary}
+              </p>
+            )}
+
+            {Array.isArray(aiPrioritization.prioritizedTasks) &&
+            aiPrioritization.prioritizedTasks.length > 0 ? (
+              <div className="space-y-3">
+                {aiPrioritization.prioritizedTasks.map((item, idx) => {
+                  const actualTask = taskMap.get(item.taskId);
+                  return (
+                    <div
+                      key={item.taskId || idx}
+                      className="flex flex-col gap-3 rounded-xl border border-slate-200/90 bg-white p-4 text-sm shadow-2xs sm:flex-row sm:items-start sm:justify-between"
+                    >
+                      <div className="flex items-start gap-3 min-w-0">
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-700">
+                          {item.rank || idx + 1}
+                        </span>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-xs text-slate-400">
+                              {item.taskId}
+                            </span>
+                            <h4 className="font-semibold text-slate-900 truncate">
+                              {actualTask?.title || item.taskId}
+                            </h4>
+                          </div>
+
+                          <p className="mt-1.5 text-xs text-slate-600 leading-relaxed">
+                            <strong className="text-slate-700">Reason: </strong>
+                            {item.reason}
+                          </p>
+
+                          {actualTask && (
+                            <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-slate-500">
+                              <span>Project: {actualTask.project}</span>
+                              <span>&bull;</span>
+                              <span>Assignee: {actualTask.assignee || "Unassigned"}</span>
+                              <span>&bull;</span>
+                              <span>Due: {actualTask.due}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex shrink-0 items-center gap-2 sm:flex-col sm:items-end sm:gap-1.5">
+                        {item.urgency && (
+                          <span
+                            className={`rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${
+                              URGENCY_STYLES[item.urgency] ||
+                              "bg-slate-100 text-slate-700 border-slate-200"
+                            }`}
+                          >
+                            Urgency: {item.urgency}
+                          </span>
+                        )}
+
+                        {item.recommendedPriority && (
+                          <span className="text-[11px] font-medium text-slate-500">
+                            Rec. Priority:{" "}
+                            <strong className="text-slate-800">
+                              {item.recommendedPriority}
+                            </strong>
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="p-4 text-center text-sm text-slate-500">
+                No incomplete tasks require prioritization.
+              </div>
+            )}
+          </div>
+        </section>
       )}
 
       {/* Search + filters */}
@@ -526,9 +644,7 @@ export default function Tasks({ filters = [] }) {
           <input
             type="text"
             value={query}
-            onChange={(event) =>
-              setQuery(event.target.value)
-            }
+            onChange={(event) => setQuery(event.target.value)}
             placeholder="Search tasks..."
             aria-label="Search tasks"
             className="w-full bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none"
@@ -543,8 +659,7 @@ export default function Tasks({ filters = [] }) {
             className="flex flex-wrap items-center gap-1.5"
           >
             {safeFilters.map((filter) => {
-              const isActive =
-                statusFilter === filter.value;
+              const isActive = statusFilter === filter.value;
 
               return (
                 <button
@@ -552,17 +667,12 @@ export default function Tasks({ filters = [] }) {
                   type="button"
                   onClick={() => {
                     setSearchParams((current) => {
-                      const next = new URLSearchParams(
-                        current
-                      );
+                      const next = new URLSearchParams(current);
 
                       if (filter.value === "all") {
                         next.delete("status");
                       } else {
-                        next.set(
-                          "status",
-                          filter.value
-                        );
+                        next.set("status", filter.value);
                       }
 
                       return next;
@@ -590,18 +700,13 @@ export default function Tasks({ filters = [] }) {
           className="flex flex-wrap items-center gap-1.5"
         >
           {PRIORITY_FILTERS.map((filter) => {
-            const isActive =
-              priorityFilter === filter.value;
+            const isActive = priorityFilter === filter.value;
 
             return (
               <button
                 key={filter.value}
                 type="button"
-                onClick={() =>
-                  setPriorityFilter(
-                    filter.value
-                  )
-                }
+                onClick={() => setPriorityFilter(filter.value)}
                 aria-pressed={isActive}
                 className={[
                   "rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
@@ -659,14 +764,8 @@ export default function Tasks({ filters = [] }) {
       </section>
 
       {/* Results */}
-      <section
-        aria-label="Task results"
-        className="flex min-w-0 flex-col gap-4"
-      >
-        <p
-          className="text-sm text-slate-500"
-          aria-live="polite"
-        >
+      <section aria-label="Task results" className="flex min-w-0 flex-col gap-4">
+        <p className="text-sm text-slate-500" aria-live="polite">
           {hasActiveFilters
             ? `${resultLabel} of ${tasks.length} total`
             : resultLabel}
@@ -675,10 +774,7 @@ export default function Tasks({ filters = [] }) {
         {resultCount === 0 ? (
           <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center shadow-sm">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100">
-              <ListChecks
-                size={18}
-                className="text-slate-400"
-              />
+              <ListChecks size={18} className="text-slate-400" />
             </div>
 
             <h2 className="text-sm font-semibold text-slate-900">
@@ -721,10 +817,7 @@ export default function Tasks({ filters = [] }) {
           className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4"
           role="presentation"
           onMouseDown={(event) => {
-            if (
-              event.target ===
-              event.currentTarget
-            ) {
+            if (event.target === event.currentTarget) {
               closeForm();
             }
           }}
@@ -741,9 +834,7 @@ export default function Tasks({ filters = [] }) {
                   id="task-form-title"
                   className="text-lg font-semibold text-slate-900"
                 >
-                  {editingTask
-                    ? "Edit task"
-                    : "Create task"}
+                  {editingTask ? "Edit task" : "Create task"}
                 </h2>
 
                 <p className="mt-1 text-sm text-slate-500">
@@ -764,10 +855,7 @@ export default function Tasks({ filters = [] }) {
               </button>
             </div>
 
-            <form
-              onSubmit={handleSubmit}
-              className="mt-6 space-y-4"
-            >
+            <form onSubmit={handleSubmit} className="mt-6 space-y-4">
               {/* Title */}
               <div>
                 <label
@@ -807,15 +895,10 @@ export default function Tasks({ filters = [] }) {
                   disabled={isSubmitting}
                   className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 disabled:bg-slate-50"
                 >
-                  <option value="">
-                    Select project
-                  </option>
+                  <option value="">Select project</option>
 
                   {projects.map((project) => (
-                    <option
-                      key={project.id}
-                      value={project.name}
-                    >
+                    <option key={project.id} value={project.name}>
                       {project.name}
                     </option>
                   ))}
@@ -839,15 +922,10 @@ export default function Tasks({ filters = [] }) {
                   disabled={isSubmitting}
                   className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 disabled:bg-slate-50"
                 >
-                  <option value="">
-                    Unassigned
-                  </option>
+                  <option value="">Unassigned</option>
 
                   {users.map((user) => (
-                    <option
-                      key={user.id}
-                      value={user.initials}
-                    >
+                    <option key={user.id} value={user.initials}>
                       {user.name} ({user.initials})
                     </option>
                   ))}
@@ -875,7 +953,6 @@ export default function Tasks({ filters = [] }) {
               </div>
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-
                 {/* Priority */}
                 <div>
                   <label
@@ -893,17 +970,9 @@ export default function Tasks({ filters = [] }) {
                     disabled={isSubmitting}
                     className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 disabled:bg-slate-50"
                   >
-                    <option value="High">
-                      High
-                    </option>
-
-                    <option value="Medium">
-                      Medium
-                    </option>
-
-                    <option value="Low">
-                      Low
-                    </option>
+                    <option value="High">High</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Low">Low</option>
                   </select>
                 </div>
 
@@ -925,16 +994,9 @@ export default function Tasks({ filters = [] }) {
                     className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 disabled:bg-slate-50"
                   >
                     {safeFilters
-                      .filter(
-                        (filter) =>
-                          filter.value !==
-                          "all"
-                      )
+                      .filter((filter) => filter.value !== "all")
                       .map((filter) => (
-                        <option
-                          key={filter.value}
-                          value={filter.value}
-                        >
+                        <option key={filter.value} value={filter.value}>
                           {filter.label}
                         </option>
                       ))}
@@ -961,8 +1023,8 @@ export default function Tasks({ filters = [] }) {
                   {isSubmitting
                     ? "Saving..."
                     : editingTask
-                      ? "Save changes"
-                      : "Create task"}
+                    ? "Save changes"
+                    : "Create task"}
                 </button>
               </div>
             </form>

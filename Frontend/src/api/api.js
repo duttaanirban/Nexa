@@ -61,6 +61,11 @@ export const api = {
       method: "POST",
     }),
 
+  analyzeTaskPrioritization: (projectId) =>
+    request(`/ai/task-prioritization/${projectId}`, {
+      method: "POST",
+    }),
+
   // Tasks
   getTasks: (params = "") =>
     request(`/tasks${params}`),
