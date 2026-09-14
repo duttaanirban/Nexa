@@ -9,6 +9,7 @@ const taskRoutes = require("./routes/taskRoutes");
 const activityRoutes = require("./routes/activityRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const sprintRoutes = require("./routes/sprintRoutes");
+const aiRoutes = require("./routes/aiRoutes"); // <-- 1. Import AI routes
 
 const notFound = require("./middleware/notFound");
 const errorHandler = require("./middleware/errorHandler");
@@ -36,12 +37,14 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(cookieParser());
+
 app.get("/", (req, res) => {
   res.status(200).json({
     success: true,
     message: "Nexa Workspace API is running",
   });
 });
+
 app.use("/api/auth", authRoutes);
 
 app.get("/api/health", (req, res) => {
@@ -57,6 +60,7 @@ app.use("/api/tasks", taskRoutes);
 app.use("/api/activity", activityRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/sprints", sprintRoutes);
+app.use("/api/ai", aiRoutes); // <-- 2. Mount AI routes
 
 // Must come AFTER all routes
 app.use(notFound);

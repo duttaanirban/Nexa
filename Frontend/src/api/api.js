@@ -55,6 +55,12 @@ export const api = {
       method: "DELETE",
     }),
 
+  // AI Analysis
+  analyzeProjectWithAI: (projectId) =>
+    request(`/ai/project-analysis/${projectId}`, {
+      method: "POST",
+    }),
+
   // Tasks
   getTasks: (params = "") =>
     request(`/tasks${params}`),

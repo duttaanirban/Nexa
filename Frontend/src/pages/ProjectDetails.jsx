@@ -8,6 +8,11 @@ import {
   Info,
   ListChecks,
   Users,
+  Sparkles,
+  Loader2,
+  AlertTriangle,
+  ShieldCheck,
+  ShieldAlert,
 } from "lucide-react";
 import { api } from "../api/api";
 
@@ -44,6 +49,21 @@ const PRIORITY_STYLES = {
   Low: "bg-slate-100 text-slate-600",
 };
 
+const AI_HEALTH_BADGES = {
+  Healthy: {
+    icon: ShieldCheck,
+    className: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  },
+  "At Risk": {
+    icon: ShieldAlert,
+    className: "bg-amber-50 text-amber-700 border-amber-200",
+  },
+  Critical: {
+    icon: AlertTriangle,
+    className: "bg-red-50 text-red-700 border-red-200",
+  },
+};
+
 export default function ProjectDetails() {
   const { id } = useParams();
 
@@ -51,6 +71,11 @@ export default function ProjectDetails() {
   const [tasks, setTasks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // AI Analysis state
+  const [aiAnalysis, setAiAnalysis] = useState(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState("");
 
   useEffect(() => {
     let isMounted = true;
@@ -100,6 +125,27 @@ export default function ProjectDetails() {
       isMounted = false;
     };
   }, [id]);
+
+  const handleAnalyzeAI = async () => {
+    if (aiLoading || !id) return;
+
+    try {
+      setAiLoading(true);
+      setAiError("");
+
+      const response = await api.analyzeProjectWithAI(id);
+      const analysisResult = response?.data || response;
+
+      setAiAnalysis(analysisResult);
+    } catch (err) {
+      console.error("AI Analysis error:", err);
+      setAiError(
+        err?.message || "Failed to analyze project. Please try again."
+      );
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   const stats = useMemo(() => {
     const completed = tasks.filter(
@@ -170,6 +216,9 @@ export default function ProjectDetails() {
     Math.max(0, Number(project.progress) || 0)
   );
 
+  const HealthBadgeIcon =
+    AI_HEALTH_BADGES[aiAnalysis?.health]?.icon || ShieldCheck;
+
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-6">
       <Link
@@ -197,12 +246,33 @@ export default function ProjectDetails() {
               </p>
             </div>
 
-            <span
-              className={`inline-flex w-fit shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs font-medium ${statusStyle.className}`}
-            >
-              <StatusIcon size={14} aria-hidden="true" />
-              {project.status}
-            </span>
+            <div className="flex shrink-0 items-center gap-2">
+              <button
+                type="button"
+                onClick={handleAnalyzeAI}
+                disabled={aiLoading}
+                className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {aiLoading ? (
+                  <>
+                    <Loader2 size={14} className="animate-spin" />
+                    <span>Analyzing...</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles size={14} />
+                    <span>✨ Analyze with Nexa AI</span>
+                  </>
+                )}
+              </button>
+
+              <span
+                className={`inline-flex w-fit shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs font-medium ${statusStyle.className}`}
+              >
+                <StatusIcon size={14} aria-hidden="true" />
+                {project.status}
+              </span>
+            </div>
           </div>
 
           <div>
@@ -254,6 +324,131 @@ export default function ProjectDetails() {
           </div>
         </div>
       </section>
+
+      {/* AI Error Alert */}
+      {aiError && (
+        <div className="flex items-center justify-between rounded-xl border border-red-200 bg-red-50/50 p-4 text-sm text-red-700">
+          <div className="flex items-center gap-2">
+            <XCircle size={16} className="shrink-0 text-red-500" />
+            <span>{aiError}</span>
+          </div>
+          <button
+            type="button"
+            onClick={handleAnalyzeAI}
+            className="font-medium underline hover:text-red-900"
+          >
+            Try again
+          </button>
+        </div>
+      )}
+
+      {/* AI Analysis Result Panel */}
+      {aiAnalysis && (
+        <section className="rounded-xl border border-indigo-100 bg-gradient-to-b from-indigo-50/40 to-white p-5 shadow-sm sm:p-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-indigo-100/80 pb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white">
+                <Sparkles size={16} />
+              </div>
+              <div>
+                <h2 className="text-base font-semibold text-slate-950">
+                  Nexa AI Project Analysis
+                </h2>
+                <p className="text-xs text-slate-500">
+                  Automated workspace health & risk insights
+                </p>
+              </div>
+            </div>
+
+            {aiAnalysis.health && (
+              <span
+                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${
+                  AI_HEALTH_BADGES[aiAnalysis.health]?.className ||
+                  "bg-slate-50 text-slate-700 border-slate-200"
+                }`}
+              >
+                <HealthBadgeIcon size={14} />
+                Project Health: {aiAnalysis.health}
+              </span>
+            )}
+          </div>
+
+          <div className="mt-5 space-y-5 text-sm">
+            {/* Summary */}
+            {aiAnalysis.summary && (
+              <div>
+                <h3 className="font-semibold text-slate-900">Summary</h3>
+                <p className="mt-1.5 leading-6 text-slate-600">
+                  {aiAnalysis.summary}
+                </p>
+              </div>
+            )}
+
+            {/* Key Risks */}
+            {Array.isArray(aiAnalysis.risks) && aiAnalysis.risks.length > 0 && (
+              <div>
+                <h3 className="font-semibold text-slate-900">Key Risks</h3>
+                <ul className="mt-2 space-y-1.5">
+                  {aiAnalysis.risks.map((risk, idx) => (
+                    <li
+                      key={idx}
+                      className="flex items-start gap-2 text-slate-600"
+                    >
+                      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-red-500" />
+                      <span>{risk}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Recommended Next Steps */}
+            {Array.isArray(aiAnalysis.recommendations) &&
+              aiAnalysis.recommendations.length > 0 && (
+                <div>
+                  <h3 className="font-semibold text-slate-900">
+                    Recommended Next Steps
+                  </h3>
+                  <ol className="mt-2 list-decimal space-y-1.5 pl-4 text-slate-600">
+                    {aiAnalysis.recommendations.map((step, idx) => (
+                      <li key={idx} className="pl-1">
+                        {step}
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              )}
+
+            {/* Priority Tasks */}
+            {Array.isArray(aiAnalysis.priorityTasks) &&
+              aiAnalysis.priorityTasks.length > 0 && (
+                <div>
+                  <h3 className="font-semibold text-slate-900">
+                    Priority Tasks
+                  </h3>
+                  <ol className="mt-2 space-y-2">
+                    {aiAnalysis.priorityTasks.map((item, idx) => (
+                      <li
+                        key={idx}
+                        className="rounded-lg border border-slate-200/80 bg-white p-3 text-xs sm:text-sm"
+                      >
+                        <span className="font-semibold text-slate-900">
+                          {idx + 1}. {item.taskId || "Task"}
+                        </span>
+                        {item.reason && (
+                          <span className="text-slate-600">
+                            {" "}
+                            — {item.reason}
+                          </span>
+                        )}
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              )}
+          </div>
+        </section>
+      )}
 
       <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
         <div className="flex items-center justify-between gap-3">
