@@ -57,7 +57,7 @@ const analyzeProject = async (req, res) => {
     `;
 
     const response = await ai.models.generateContent({
-      model: "gemini-3.6-flash",
+      model: "gemini-3.5-flash-lite",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -165,7 +165,7 @@ const prioritizeTasks = async (req, res) => {
 
     // 4. Request JSON from Gemini
     const response = await ai.models.generateContent({
-      model: "gemini-3.6-flash",
+      model: "gemini-3.5-flash-lite",
       contents: prompt,
       config: {
         systemInstruction:
@@ -284,7 +284,7 @@ const generateTasks = async (req, res) => {
 
     // 4. Request Structured Output from Gemini
     const response = await ai.models.generateContent({
-      model: "gemini-3.6-flash",
+      model: "gemini-3.5-flash-lite",
       contents: prompt,
       config: {
         systemInstruction:
