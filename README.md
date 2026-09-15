@@ -31,6 +31,7 @@ Nexa is a developer productivity and project management platform with a React da
 - Global search across projects and tasks
 - REST API integration using cookie credentials and configurable frontend API URL
 - AI-powered project analysis, task prioritization, and task generation through Google Gemini
+- Activity and Notification functionality synced with backend and doesn't reset with backend restart
 
 ## Technology
 
@@ -193,6 +194,5 @@ The current CORS configuration allows configured frontend origins with credentia
 
 ## Current Limitations
 
-- Activity history are held in memory and reset when the backend restarts.
 - Alert configuration data is currently managed in frontend state and local data modules.
 - No automated test suite is currently configured.
