@@ -258,7 +258,7 @@ const createProject = async (req, res) => {
     const newProject =
       await getProjectWithTeam(projectId);
 
-    addActivity({
+    await addActivity({
       type: "project-created",
       title: "Created new project",
       description: newProject.name,
@@ -421,7 +421,21 @@ const updateProject = async (req, res) => {
     const updatedProject =
       await getProjectWithTeam(projectId);
 
-    addActivity({
+    try {
+      await addActivity({
+        type: "project-updated",
+        title: "Updated project",
+        description: updatedProject.name,
+        project: updatedProject.name,
+      });
+    } catch (activityError) {
+      console.error(
+        "Failed to record project activity:",
+        activityError
+      );
+    }
+
+    await addActivity({
       type: "project-updated",
       title: "Updated project",
       description: updatedProject.name,
@@ -479,12 +493,19 @@ const deleteProject = async (req, res) => {
       [projectId]
     );
 
-    addActivity({
-      type: "project-deleted",
-      title: "Deleted project",
-      description: project.name,
-      project: project.name,
-    });
+    try {
+      await addActivity({
+        type: "project-deleted",
+        title: "Deleted project",
+        description: project.name,
+        project: project.name,
+      });
+    } catch (activityError) {
+      console.error(
+        "Failed to record project activity:",
+        activityError
+      );
+    }
 
     return res.status(200).json({
       success: true,

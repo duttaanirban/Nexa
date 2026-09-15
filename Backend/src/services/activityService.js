@@ -1,34 +1,73 @@
-const activities = [];
+const { pool } = require("../config/database");
 
-const addActivity = ({
+const addActivity = async ({
   type,
   title,
   description,
   project,
   user,
 }) => {
-  const activity = {
-    id: `ACT-${Date.now()}`,
-    type,
-    title,
-    description,
-    project: project || null,
-    user: user || null,
-    timestamp: new Date().toISOString(),
-  };
+  const result = await pool.query(
+    `
+    INSERT INTO activities (
+      id,
+      type,
+      title,
+      description,
+      project,
+      user_name
+    )
+    VALUES (
+      'ACT-' || LPAD(
+        nextval('activities_id_seq')::TEXT,
+        4,
+        '0'
+      ),
+      $1,
+      $2,
+      $3,
+      $4,
+      $5
+    )
+    RETURNING
+      id,
+      type,
+      title,
+      description,
+      project,
+      user_name AS "user",
+      created_at AS "timestamp"
+    `,
+    [
+      type,
+      title,
+      description || "",
+      project || null,
+      user || null,
+    ]
+  );
 
-  activities.unshift(activity);
-
-  // Keep only the latest 50 activities
-  if (activities.length > 50) {
-    activities.length = 50;
-  }
-
-  return activity;
+  return result.rows[0];
 };
 
-const getActivities = () => {
-  return activities;
+const getActivities = async () => {
+  const result = await pool.query(
+    `
+    SELECT
+      id,
+      type,
+      title,
+      description,
+      project,
+      user_name AS "user",
+      created_at AS "timestamp"
+    FROM activities
+    ORDER BY created_at DESC
+    LIMIT 50
+    `
+  );
+
+  return result.rows;
 };
 
 module.exports = {

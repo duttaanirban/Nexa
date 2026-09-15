@@ -334,13 +334,20 @@ const createTask = async (req, res) => {
       });
     }
 
-    addActivity({
-      type: "task-created",
-      title: "Created new task",
-      description: newTask.title,
-      project: newTask.project,
-      user: newTask.assignee || "Unassigned",
-    });
+    try {
+      await addActivity({
+        type: "task-created",
+        title: "Created new task",
+        description: newTask.title,
+        project: newTask.project,
+        user: newTask.assignee || "Unassigned",
+      });
+    } catch (activityError) {
+      console.error(
+        "Failed to record task activity:",
+        activityError
+      );
+    }
 
     return res.status(201).json({
       success: true,
@@ -518,7 +525,7 @@ const updateTask = async (req, res) => {
       result.rows[0]
     );
 
-    addActivity({
+    await addActivity({
       type: "task-updated",
       title: "Updated task",
       description: updatedTask.title,
@@ -676,7 +683,7 @@ const updateTaskStatus = async (
       });
     }
 
-    addActivity({
+    await addActivity({
       type:
         status === "done"
           ? "task-completed"
@@ -744,7 +751,7 @@ const deleteTask = async (req, res) => {
       [taskId]
     );
 
-    addActivity({
+    await addActivity({
       type: "task-deleted",
       title: "Deleted task",
       description: deletedTask.title,

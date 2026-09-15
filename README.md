@@ -193,6 +193,6 @@ The current CORS configuration allows configured frontend origins with credentia
 
 ## Current Limitations
 
-- Activity history and notifications are held in memory and reset when the backend restarts.
+- Activity history are held in memory and reset when the backend restarts.
 - Alert configuration data is currently managed in frontend state and local data modules.
 - No automated test suite is currently configured.

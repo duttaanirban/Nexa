@@ -132,3 +132,46 @@ CREATE INDEX IF NOT EXISTS idx_tasks_assignee_id
 CREATE INDEX IF NOT EXISTS idx_tasks_status
     ON tasks(status);
 
+CREATE SEQUENCE IF NOT EXISTS activities_id_seq START 1;
+
+CREATE TABLE IF NOT EXISTS activities (
+    id VARCHAR(30) PRIMARY KEY,
+
+    type VARCHAR(50) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    description TEXT DEFAULT '',
+
+    project VARCHAR(150),
+    user_name VARCHAR(150),
+
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_activities_created_at
+    ON activities(created_at DESC);
+
+CREATE SEQUENCE IF NOT EXISTS notifications_id_seq START 1;
+
+CREATE TABLE IF NOT EXISTS notifications (
+    id VARCHAR(30) PRIMARY KEY,
+
+    user_id VARCHAR(20) NOT NULL,
+
+    type VARCHAR(50) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL DEFAULT '',
+    project VARCHAR(150),
+
+    read BOOLEAN NOT NULL DEFAULT FALSE,
+
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+    CONSTRAINT fk_notifications_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_notifications_user_created
+    ON notifications(user_id, created_at DESC);
+
