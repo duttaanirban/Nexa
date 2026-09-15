@@ -11,6 +11,9 @@ const {
 const {
   validateRequiredFields,
 } = require("../middleware/validation");
+const {
+  optionalAuthenticate,
+} = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
@@ -23,6 +26,7 @@ router.get("/:id", getProjectById);
 // POST /api/projects
 router.post(
   "/",
+  optionalAuthenticate,
   validateRequiredFields([
     "name",
     "description",
@@ -33,6 +37,7 @@ router.post(
 // PUT /api/projects/:id
 router.put(
   "/:id",
+  optionalAuthenticate,
   validateRequiredFields([
     "name",
     "description",
@@ -41,6 +46,10 @@ router.put(
 );
 
 // DELETE /api/projects/:id
-router.delete("/:id", deleteProject);
+router.delete(
+  "/:id",
+  optionalAuthenticate,
+  deleteProject
+);
 
 module.exports = router;

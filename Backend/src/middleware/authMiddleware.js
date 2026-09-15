@@ -29,6 +29,21 @@ const protect = (req, res, next) => {
   }
 };
 
+const optionalAuthenticate = (req, _res, next) => {
+  try {
+    const token = req.cookies?.pulse_token;
+
+    if (token) {
+      req.user = jwt.verify(token, JWT_SECRET);
+    }
+  } catch (error) {
+    req.user = null;
+  }
+
+  next();
+};
+
 module.exports = {
   protect,
+  optionalAuthenticate,
 };

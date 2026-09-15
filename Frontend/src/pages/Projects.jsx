@@ -10,6 +10,7 @@ import ProjectCard from "../components/dashboard/ProjectCard";
 import { api } from "../api/api";
 import DeleteConfirmModal from "../components/ui/DeleteConfirmModal";
 import Toast from "../components/ui/Toast";
+import { useCurrentUser } from "../context/useCurrentUser";
 
 const STATUS_FILTERS = [
   "All",
@@ -19,6 +20,8 @@ const STATUS_FILTERS = [
 ];
 
 export default function Projects() {
+  const { user: currentUser } = useCurrentUser();
+
   const [projects, setProjects] = useState([]);
 
   const [query, setQuery] = useState("");
@@ -191,6 +194,10 @@ export default function Projects() {
     const projectData = {
       name: formData.name.trim(),
       description: formData.description.trim(),
+      user:
+        currentUser?.initials ||
+        currentUser?.name ||
+        "",
 
       progress: Math.min(
         100,

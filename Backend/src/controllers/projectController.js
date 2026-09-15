@@ -38,6 +38,22 @@ const getProjectWithTeam = async (projectId) => {
   return result.rows[0] || null;
 };
 
+const getActivityUserLabel = async (userId) => {
+  if (!userId) return null;
+
+  const result = await pool.query(
+    `
+      SELECT
+        COALESCE(NULLIF(initials, ''), name) AS label
+      FROM users
+      WHERE id = $1
+    `,
+    [userId]
+  );
+
+  return result.rows[0]?.label || null;
+};
+
 /**
  * Get all projects
  */
@@ -263,6 +279,9 @@ const createProject = async (req, res) => {
       title: "Created new project",
       description: newProject.name,
       project: newProject.name,
+      user:
+        (await getActivityUserLabel(req.user?.id)) ||
+        req.body.user,
     });
 
     return res.status(201).json({
@@ -427,6 +446,9 @@ const updateProject = async (req, res) => {
         title: "Updated project",
         description: updatedProject.name,
         project: updatedProject.name,
+        user:
+          (await getActivityUserLabel(req.user?.id)) ||
+          req.body.user,
       });
     } catch (activityError) {
       console.error(
@@ -434,13 +456,6 @@ const updateProject = async (req, res) => {
         activityError
       );
     }
-
-    await addActivity({
-      type: "project-updated",
-      title: "Updated project",
-      description: updatedProject.name,
-      project: updatedProject.name,
-    });
 
     return res.status(200).json({
       success: true,
@@ -499,6 +514,7 @@ const deleteProject = async (req, res) => {
         title: "Deleted project",
         description: project.name,
         project: project.name,
+        user: await getActivityUserLabel(req.user?.id),
       });
     } catch (activityError) {
       console.error(
